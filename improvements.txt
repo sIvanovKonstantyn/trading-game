@@ -28,6 +28,10 @@ If OPEN_API_KEY is specified, for each "next day" click (and on the opening for 
 Let's make few imrovements:
 1. Let's add ability to specify sum in usdc, which we want to buy/sell. The amount of btc will be recalcualted according to the price and usdc sum.
 
+
+Let's add the leaderboard. When we finish the game, it's results (player name, initial balance, final balance, pnl) should be saved in "leaderboard.txt" file and all the file content should be parsend and shown in a scrolled table.
+The table should be ordered by PnL desc.
+
 COMPLETED FEATURES:
 ✅ RSI, Bollinger Bands, and Volume charts implemented
 ✅ News panel with random crypto news and market updates

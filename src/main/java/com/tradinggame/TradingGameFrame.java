@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.io.*;
+import java.util.*;
 
 public class TradingGameFrame extends JFrame {
     private GameState gameState;
@@ -143,15 +145,19 @@ public class TradingGameFrame extends JFrame {
 
     private void showGameResults() {
         double initialBalance = gameState.getInitialBalance();
-        double finalBalance = gameState.getCurrentBalance();
+        double finalBalance = gameState.getCurrentBalance() + gameState.getBtcBalance() * gameState.getCurrentBtcPrice();
         double pnl = finalBalance - initialBalance;
         double pnlPercentage = (pnl / initialBalance) * 100;
+        String playerName = gameState.getPlayerName();
+
+        // Save to leaderboard.txt
+        saveToLeaderboard(playerName, initialBalance, finalBalance, pnl);
 
         // Create custom results dialog
         JDialog resultsDialog = new JDialog(this, "Game Results", true);
         resultsDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         resultsDialog.setResizable(false);
-        resultsDialog.setSize(400, 300);
+        resultsDialog.setSize(600, 500);
         resultsDialog.setLocationRelativeTo(this);
 
         // Create main panel
@@ -172,12 +178,15 @@ public class TradingGameFrame extends JFrame {
             "🎉 Game Finished! 🎉\n\n" +
             "Player: %s\n" +
             "Initial Balance: $%.2f USDC\n" +
-            "Final Balance: $%.2f USDC\n" +
+            "Final Balance: $%.2f (USDC + BTC*Price)\n" +
             "PnL: $%.2f USDC (%.2f%%)\n\n" +
             "Thank you for playing the Crypto Trading Simulator!",
-            gameState.getPlayerName(), initialBalance, finalBalance, pnl, pnlPercentage
+            playerName, initialBalance, finalBalance, pnl, pnlPercentage
         );
         resultsArea.setText(resultsText);
+
+        // Leaderboard panel
+        LeaderboardPanel leaderboardPanel = new LeaderboardPanel();
 
         // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
@@ -204,12 +213,20 @@ public class TradingGameFrame extends JFrame {
         buttonPanel.add(newGameButton);
         buttonPanel.add(exitButton);
 
-        // Add components to main panel
-        mainPanel.add(new JScrollPane(resultsArea), BorderLayout.CENTER);
+        mainPanel.add(resultsArea, BorderLayout.NORTH);
+        mainPanel.add(new JScrollPane(leaderboardPanel), BorderLayout.CENTER);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-        resultsDialog.add(mainPanel);
+        resultsDialog.setContentPane(mainPanel);
         resultsDialog.setVisible(true);
+    }
+
+    private void saveToLeaderboard(String playerName, double initial, double fin, double pnl) {
+        try (FileWriter fw = new FileWriter("leaderboard.txt", true); BufferedWriter bw = new BufferedWriter(fw)) {
+            bw.write(String.format("%s,%.2f,%.2f,%.2f\n", playerName, initial, fin, pnl));
+        } catch (IOException e) {
+            System.err.println("Failed to write to leaderboard.txt: " + e.getMessage());
+        }
     }
 
     private void restartGame() {
@@ -265,7 +282,7 @@ public class TradingGameFrame extends JFrame {
                 
                 backgroundThread.start();
                 
-                Timer showDialogTimer = new Timer(50, e -> {
+                javax.swing.Timer showDialogTimer = new javax.swing.Timer(50, e -> {
                     loadingDialog.setVisible(true);
                 });
                 showDialogTimer.setRepeats(false);
