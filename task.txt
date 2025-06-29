@@ -1,0 +1,11 @@
+Let's implement the crypto trading simulator-game.
+User starts the game. Sets the name, the period (start-end dates) and initial deposit in USDC.
+
+The game gets 4h BTC/USDC prices for the first day from period (use binance API) and shows them on the graphic.
+User should be able to place the sell/buy order on the specific price. 
+If we put the order on the prices that can be covered by cunnert (according to a graph) BTC/USC price - the orders is executed, the user balance is changed.
+On the UI we also have "next day" button, when we press it - the graph is populated with one more day prices (if any orders were placed are match to the prices - they alsoi should be executed).
+IMPORTANT - we can not place orders in PAST.
+
+When the "current date" reaches the end of the initial period - game is finished. We should see user final balance and PnL.
+On the UI we always see the current balance and open orders (prices, sum, date)
