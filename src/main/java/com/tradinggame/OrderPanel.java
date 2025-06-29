@@ -5,14 +5,20 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 public class OrderPanel extends JPanel {
     private GameState gameState;
     private JComboBox<OrderType> orderTypeCombo;
     private JTextField priceField;
     private JTextField amountField;
+    private JTextField usdcAmountField;
     private JComboBox<String> orderDateCombo;
     private JButton placeOrderButton;
+    private JRadioButton btcAmountRadio;
+    private JRadioButton usdcAmountRadio;
+    private ButtonGroup amountTypeGroup;
 
     public OrderPanel(GameState gameState) {
         this.gameState = gameState;
@@ -36,12 +42,22 @@ public class OrderPanel extends JPanel {
         orderTypeCombo = new JComboBox<>(OrderType.values());
         priceField = new JTextField(10);
         amountField = new JTextField(10);
+        usdcAmountField = new JTextField(10);
         orderDateCombo = new JComboBox<>();
         placeOrderButton = new JButton("Place Order");
+        
+        // Radio buttons for amount type
+        btcAmountRadio = new JRadioButton("BTC Amount");
+        usdcAmountRadio = new JRadioButton("USDC Amount");
+        amountTypeGroup = new ButtonGroup();
+        amountTypeGroup.add(btcAmountRadio);
+        amountTypeGroup.add(usdcAmountRadio);
+        btcAmountRadio.setSelected(true); // Default to BTC
         
         // Set default values
         priceField.setText("50000");
         amountField.setText("0.001");
+        usdcAmountField.setText("50");
         
         // Set minimum width for text fields and combo box
         Dimension minSize = new Dimension(100, priceField.getPreferredSize().height);
@@ -49,6 +65,8 @@ public class OrderPanel extends JPanel {
         priceField.setPreferredSize(minSize);
         amountField.setMinimumSize(minSize);
         amountField.setPreferredSize(minSize);
+        usdcAmountField.setMinimumSize(minSize);
+        usdcAmountField.setPreferredSize(minSize);
         orderDateCombo.setMinimumSize(minSize);
         orderDateCombo.setPreferredSize(minSize);
         
@@ -73,20 +91,35 @@ public class OrderPanel extends JPanel {
         gbc.gridx = 1;
         add(priceField, gbc);
         
-        // Amount
+        // Amount Type Selection
         gbc.gridx = 0; gbc.gridy = 2;
+        add(new JLabel("Amount Type:"), gbc);
+        gbc.gridx = 1;
+        JPanel amountTypePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        amountTypePanel.add(btcAmountRadio);
+        amountTypePanel.add(usdcAmountRadio);
+        add(amountTypePanel, gbc);
+        
+        // BTC Amount
+        gbc.gridx = 0; gbc.gridy = 3;
         add(new JLabel("Amount (BTC):"), gbc);
         gbc.gridx = 1;
         add(amountField, gbc);
         
+        // USDC Amount
+        gbc.gridx = 0; gbc.gridy = 4;
+        add(new JLabel("Amount (USDC):"), gbc);
+        gbc.gridx = 1;
+        add(usdcAmountField, gbc);
+        
         // Order Date
-        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridx = 0; gbc.gridy = 5;
         add(new JLabel("Order Date:"), gbc);
         gbc.gridx = 1;
         add(orderDateCombo, gbc);
         
         // Place Order Button
-        gbc.gridx = 0; gbc.gridy = 4;
+        gbc.gridx = 0; gbc.gridy = 6;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         add(placeOrderButton, gbc);
@@ -101,6 +134,85 @@ public class OrderPanel extends JPanel {
                 placeOrder();
             }
         });
+        
+        // Add listeners for automatic calculation
+        // Document listeners for live recalculation
+        priceField.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { recalcAmounts(); }
+            public void removeUpdate(DocumentEvent e) { recalcAmounts(); }
+            public void changedUpdate(DocumentEvent e) { recalcAmounts(); }
+        });
+        amountField.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { if (btcAmountRadio.isSelected()) calculateUsdcAmount(); }
+            public void removeUpdate(DocumentEvent e) { if (btcAmountRadio.isSelected()) calculateUsdcAmount(); }
+            public void changedUpdate(DocumentEvent e) { if (btcAmountRadio.isSelected()) calculateUsdcAmount(); }
+        });
+        usdcAmountField.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { if (usdcAmountRadio.isSelected()) calculateBtcAmount(); }
+            public void removeUpdate(DocumentEvent e) { if (usdcAmountRadio.isSelected()) calculateBtcAmount(); }
+            public void changedUpdate(DocumentEvent e) { if (usdcAmountRadio.isSelected()) calculateBtcAmount(); }
+        });
+        
+        btcAmountRadio.addActionListener(e -> {
+            amountField.setEnabled(true);
+            usdcAmountField.setEnabled(false);
+        });
+        
+        usdcAmountRadio.addActionListener(e -> {
+            amountField.setEnabled(false);
+            usdcAmountField.setEnabled(true);
+        });
+        
+        // Set initial state
+        amountField.setEnabled(true);
+        usdcAmountField.setEnabled(false);
+    }
+    
+    private void recalcAmounts() {
+        if (usdcAmountRadio.isSelected()) {
+            calculateBtcAmount();
+        } else {
+            calculateUsdcAmount();
+        }
+    }
+    
+    private void calculateAmount() {
+        try {
+            double price = Double.parseDouble(priceField.getText());
+            double usdcAmount = Double.parseDouble(usdcAmountField.getText());
+            if (price > 0 && usdcAmount > 0) {
+                double btcAmount = usdcAmount / price;
+                amountField.setText(String.format("%.6f", btcAmount));
+            }
+        } catch (NumberFormatException ex) {
+            // Ignore invalid input
+        }
+    }
+    
+    private void calculateUsdcAmount() {
+        try {
+            double price = Double.parseDouble(priceField.getText());
+            double btcAmount = Double.parseDouble(amountField.getText());
+            if (price > 0 && btcAmount > 0) {
+                double usdcAmount = btcAmount * price;
+                usdcAmountField.setText(String.format("%.2f", usdcAmount));
+            }
+        } catch (NumberFormatException ex) {
+            // Ignore invalid input
+        }
+    }
+    
+    private void calculateBtcAmount() {
+        try {
+            double price = Double.parseDouble(priceField.getText());
+            double usdcAmount = Double.parseDouble(usdcAmountField.getText());
+            if (price > 0 && usdcAmount > 0) {
+                double btcAmount = usdcAmount / price;
+                amountField.setText(String.format("%.6f", btcAmount));
+            }
+        } catch (NumberFormatException ex) {
+            // Ignore invalid input
+        }
     }
 
     private void placeOrder() {

@@ -4,17 +4,22 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.time.*;
 import org.jfree.data.xy.XYDataset;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.awt.geom.Rectangle2D;
 
 public class PriceChartPanel extends JPanel {
     private GameState gameState;
@@ -59,6 +64,29 @@ public class PriceChartPanel extends JPanel {
         chartPanel.setPreferredSize(new Dimension(800, 400));
         
         add(chartPanel, BorderLayout.CENTER);
+    }
+    
+    private PriceData findClosestPoint(List<PriceData> priceHistory, double targetX) {
+        if (priceHistory.isEmpty()) return null;
+        
+        // Convert targetX (which is in milliseconds since epoch) to LocalDateTime
+        Date targetDate = new Date((long) targetX);
+        LocalDateTime targetDateTime = targetDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        
+        PriceData closest = priceHistory.get(0);
+        long minDiff = Math.abs(targetDateTime.toEpochSecond(java.time.ZoneOffset.UTC) - 
+                               closest.getTimestamp().toEpochSecond(java.time.ZoneOffset.UTC));
+        
+        for (PriceData point : priceHistory) {
+            long diff = Math.abs(targetDateTime.toEpochSecond(java.time.ZoneOffset.UTC) - 
+                               point.getTimestamp().toEpochSecond(java.time.ZoneOffset.UTC));
+            if (diff < minDiff) {
+                minDiff = diff;
+                closest = point;
+            }
+        }
+        
+        return closest;
     }
 
     private XYDataset createDataset() {
