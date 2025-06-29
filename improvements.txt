@@ -1,0 +1,6 @@
+Let's implement new features:
+Besides that price graph, let's show:
+rsi grash, bollinger bands and volumes
+
+Also let's add some tex area, where we will show the news text.
+For now let's just populate the news by random text.

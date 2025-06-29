@@ -9,10 +9,11 @@ import java.time.format.DateTimeFormatter;
 
 public class TradingGameFrame extends JFrame {
     private GameState gameState;
-    private PriceChartPanel chartPanel;
+    private EnhancedChartPanel chartPanel;
     private OrderPanel orderPanel;
     private BalancePanel balancePanel;
     private OrdersListPanel ordersListPanel;
+    private NewsPanel newsPanel;
     private JButton nextDayButton;
     private JLabel currentDateLabel;
     private JLabel gameStatusLabel;
@@ -20,7 +21,7 @@ public class TradingGameFrame extends JFrame {
     public TradingGameFrame() {
         setTitle("Crypto Trading Simulator");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1200, 800);
+        setSize(1400, 900);
         setLocationRelativeTo(null);
 
         initComponents();
@@ -32,10 +33,11 @@ public class TradingGameFrame extends JFrame {
         gameState = new GameState();
         
         // Initialize panels
-        chartPanel = new PriceChartPanel(gameState);
+        chartPanel = new EnhancedChartPanel(gameState);
         orderPanel = new OrderPanel(gameState);
         balancePanel = new BalancePanel(gameState);
         ordersListPanel = new OrdersListPanel(gameState);
+        newsPanel = new NewsPanel(gameState);
         
         // Initialize buttons and labels
         nextDayButton = new JButton("Next Day");
@@ -61,15 +63,15 @@ public class TradingGameFrame extends JFrame {
         topPanel.add(nextDayButton);
         add(topPanel, BorderLayout.NORTH);
 
-        // Center panel for chart
+        // Center panel for charts
         JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.setBorder(BorderFactory.createTitledBorder("BTC/USDC Price Chart"));
+        centerPanel.setBorder(BorderFactory.createTitledBorder("Technical Analysis Charts"));
         centerPanel.add(chartPanel, BorderLayout.CENTER);
         add(centerPanel, BorderLayout.CENTER);
 
-        // Right panel for trading controls
+        // Right panel for trading controls and news
         JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.setPreferredSize(new Dimension(300, 0));
+        rightPanel.setPreferredSize(new Dimension(350, 0));
         rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Balance panel at top
@@ -84,13 +86,19 @@ public class TradingGameFrame extends JFrame {
         orderWrapper.add(orderPanel, BorderLayout.CENTER);
         rightPanel.add(orderWrapper, BorderLayout.CENTER);
 
-        // Orders list at bottom
+        // Orders list
         JPanel ordersWrapper = new JPanel(new BorderLayout());
         ordersWrapper.setBorder(BorderFactory.createTitledBorder("Open Orders"));
         ordersWrapper.add(ordersListPanel, BorderLayout.CENTER);
         rightPanel.add(ordersWrapper, BorderLayout.SOUTH);
 
         add(rightPanel, BorderLayout.EAST);
+
+        // News panel at bottom
+        JPanel newsWrapper = new JPanel(new BorderLayout());
+        newsWrapper.setBorder(BorderFactory.createTitledBorder("Market News"));
+        newsWrapper.add(newsPanel, BorderLayout.CENTER);
+        add(newsWrapper, BorderLayout.SOUTH);
     }
 
     private void setupEventHandlers() {

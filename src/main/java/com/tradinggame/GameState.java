@@ -22,11 +22,14 @@ public class GameState {
     private List<GameStateListener> listeners;
     
     private BinanceApiClient apiClient;
+    private int indicatorWarmupDays = 20; // For Bollinger Bands (max of RSI/Bollinger)
+    private List<PriceData> allPriceHistory;
 
     public GameState() {
         this.openOrders = new CopyOnWriteArrayList<>();
         this.executedOrders = new CopyOnWriteArrayList<>();
         this.priceHistory = new CopyOnWriteArrayList<>();
+        this.allPriceHistory = new CopyOnWriteArrayList<>();
         this.listeners = new CopyOnWriteArrayList<>();
         this.apiClient = new BinanceApiClient();
         this.btcBalance = 0.0;
@@ -41,9 +44,12 @@ public class GameState {
         this.currentBalance = initialBalance;
         this.gameStarted = true;
         this.gameFinished = false;
+        this.priceHistory.clear();
+        this.allPriceHistory.clear();
         
-        // Load first day's prices
-        loadPricesForCurrentDate();
+        // Load warm-up prices for indicators
+        LocalDate warmupStart = startDate.minusDays(indicatorWarmupDays);
+        loadPricesForRange(warmupStart, endDate);
         notifyListeners();
     }
 
@@ -86,7 +92,11 @@ public class GameState {
         for (int hour = 0; hour < 24; hour += 4) {
             LocalDateTime timestamp = date.atTime(hour, 0);
             double price = basePrice + (Math.random() - 0.5) * 2000; // ±1000 variation
-            priceHistory.add(new PriceData(timestamp, price));
+            PriceData priceData = new PriceData(timestamp, price);
+            allPriceHistory.add(priceData);
+            if (!date.isBefore(startDate)) {
+                priceHistory.add(priceData);
+            }
         }
     }
 
@@ -202,5 +212,30 @@ public class GameState {
             return 50000.0; // Default price
         }
         return priceHistory.get(priceHistory.size() - 1).getPrice();
+    }
+
+    private void loadPricesForRange(LocalDate from, LocalDate to) {
+        LocalDate date = from;
+        while (!date.isAfter(to)) {
+            try {
+                List<PriceData> newPrices = apiClient.getHistoricalPrices(date);
+                allPriceHistory.addAll(newPrices);
+                if (!date.isBefore(startDate)) {
+                    priceHistory.addAll(newPrices);
+                }
+            } catch (Exception e) {
+                System.err.println("Error loading prices for " + date + ": " + e.getMessage());
+                addMockPricesForDate(date);
+            }
+            date = date.plusDays(1);
+        }
+    }
+
+    // For indicator calculations, use allPriceHistory
+    public List<PriceData> getAllPriceHistory() {
+        if (allPriceHistory == null) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(allPriceHistory);
     }
 } 
