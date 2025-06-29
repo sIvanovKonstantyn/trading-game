@@ -13,6 +13,7 @@ public class StartupDialog extends JDialog {
     private JTextField startDateField;
     private JTextField endDateField;
     private JTextField balanceField;
+    private JTextField feeField;
     private JButton startButton;
     private JButton cancelButton;
     
@@ -21,6 +22,7 @@ public class StartupDialog extends JDialog {
     private LocalDate startDate;
     private LocalDate endDate;
     private double initialBalance;
+    private double tradingFee;
 
     public StartupDialog(JFrame parent) {
         super(parent, "Start New Trading Game", true);
@@ -39,6 +41,7 @@ public class StartupDialog extends JDialog {
         startDateField.setText(LocalDate.now().minusDays(7).format(DateTimeFormatter.ISO_LOCAL_DATE));
         endDateField.setText(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         balanceField.setText("10000");
+        feeField.setText("0.0001");
     }
 
     private void initComponents() {
@@ -46,6 +49,7 @@ public class StartupDialog extends JDialog {
         startDateField = new JTextField(20);
         endDateField = new JTextField(20);
         balanceField = new JTextField(20);
+        feeField = new JTextField(20);
         startButton = new JButton("Start Game");
         cancelButton = new JButton("Cancel");
         
@@ -59,6 +63,8 @@ public class StartupDialog extends JDialog {
         endDateField.setPreferredSize(minSize);
         balanceField.setMinimumSize(minSize);
         balanceField.setPreferredSize(minSize);
+        feeField.setMinimumSize(minSize);
+        feeField.setPreferredSize(minSize);
         
         // Style components
         startButton.setFont(new Font("Arial", Font.BOLD, 12));
@@ -100,6 +106,12 @@ public class StartupDialog extends JDialog {
         mainPanel.add(new JLabel("Initial Balance (USDC):"), gbc);
         gbc.gridx = 1;
         mainPanel.add(balanceField, gbc);
+        
+        // Trading Fee
+        gbc.gridx = 0; gbc.gridy = 4;
+        mainPanel.add(new JLabel("Trading Fee (%):"), gbc);
+        gbc.gridx = 1;
+        mainPanel.add(feeField, gbc);
         
         add(mainPanel, BorderLayout.CENTER);
         
@@ -179,6 +191,18 @@ public class StartupDialog extends JDialog {
             return false;
         }
         
+        // Validate trading fee
+        try {
+            tradingFee = Double.parseDouble(feeField.getText());
+            if (tradingFee < 0 || tradingFee > 100) {
+                JOptionPane.showMessageDialog(this, "Trading fee must be between 0% and 100%.", "Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid trading fee.", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        
         return true;
     }
 
@@ -188,4 +212,5 @@ public class StartupDialog extends JDialog {
     public LocalDate getStartDate() { return startDate; }
     public LocalDate getEndDate() { return endDate; }
     public double getInitialBalance() { return initialBalance; }
+    public double getTradingFee() { return tradingFee; }
 } 

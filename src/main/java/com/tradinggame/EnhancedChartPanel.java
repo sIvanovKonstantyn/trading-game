@@ -69,6 +69,13 @@ public class EnhancedChartPanel extends JPanel {
         DateAxis axis = (DateAxis) plot.getDomainAxis();
         axis.setDateFormatOverride(new SimpleDateFormat("MM-dd HH:mm"));
         
+        // Customize the price line renderer to make it more prominent
+        XYLineAndShapeRenderer priceRenderer = new XYLineAndShapeRenderer();
+        priceRenderer.setSeriesPaint(0, new Color(0, 100, 200)); // Dark blue for price
+        priceRenderer.setSeriesStroke(0, new BasicStroke(2.5f)); // Thicker line
+        priceRenderer.setSeriesShapesVisible(0, false); // No shapes for cleaner look
+        plot.setRenderer(0, priceRenderer);
+        
         // Add Bollinger Bands
         addBollingerBands(plot);
         
@@ -95,6 +102,13 @@ public class EnhancedChartPanel extends JPanel {
         DateAxis axis = (DateAxis) plot.getDomainAxis();
         axis.setDateFormatOverride(new SimpleDateFormat("MM-dd HH:mm"));
         
+        // Customize the RSI line renderer to match price chart styling
+        XYLineAndShapeRenderer rsiRenderer = new XYLineAndShapeRenderer();
+        rsiRenderer.setSeriesPaint(0, new Color(0, 100, 200)); // Same dark blue as price chart
+        rsiRenderer.setSeriesStroke(0, new BasicStroke(2.5f)); // Same thickness as price chart
+        rsiRenderer.setSeriesShapesVisible(0, false); // No shapes for cleaner look
+        plot.setRenderer(0, rsiRenderer);
+        
         // Add overbought/oversold lines
         addRSILines(plot);
         
@@ -120,6 +134,13 @@ public class EnhancedChartPanel extends JPanel {
         XYPlot plot = (XYPlot) volumeChart.getPlot();
         DateAxis axis = (DateAxis) plot.getDomainAxis();
         axis.setDateFormatOverride(new SimpleDateFormat("MM-dd HH:mm"));
+        
+        // Customize the volume line renderer to match price chart styling
+        XYLineAndShapeRenderer volumeRenderer = new XYLineAndShapeRenderer();
+        volumeRenderer.setSeriesPaint(0, new Color(0, 100, 200)); // Same dark blue as price chart
+        volumeRenderer.setSeriesStroke(0, new BasicStroke(2.5f)); // Same thickness as price chart
+        volumeRenderer.setSeriesShapesVisible(0, false); // No shapes for cleaner look
+        plot.setRenderer(0, volumeRenderer);
         
         ChartPanel panel = new ChartPanel(volumeChart);
         panel.setPreferredSize(new Dimension(800, 200));
@@ -260,12 +281,22 @@ public class EnhancedChartPanel extends JPanel {
             bbDataset.addSeries(lowerSeries);
             plot.setDataset(1, bbDataset);
             XYLineAndShapeRenderer bbRenderer = new XYLineAndShapeRenderer();
-            bbRenderer.setSeriesPaint(0, Color.RED);
-            bbRenderer.setSeriesPaint(1, Color.BLUE);
-            bbRenderer.setSeriesPaint(2, Color.RED);
+            
+            // Use lighter, more transparent colors for Bollinger Bands
+            bbRenderer.setSeriesPaint(0, new Color(255, 100, 100, 120)); // Light red with transparency
+            bbRenderer.setSeriesPaint(1, new Color(100, 100, 255, 100)); // Light blue with transparency  
+            bbRenderer.setSeriesPaint(2, new Color(255, 100, 100, 120)); // Light red with transparency
+            
+            // Use thinner strokes for Bollinger Bands
             bbRenderer.setSeriesStroke(0, new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{5}, 0));
-            bbRenderer.setSeriesStroke(1, new BasicStroke(1.0f));
+            bbRenderer.setSeriesStroke(1, new BasicStroke(0.8f)); // Thinner middle line
             bbRenderer.setSeriesStroke(2, new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{5}, 0));
+            
+            // Make shapes invisible for cleaner look
+            bbRenderer.setSeriesShapesVisible(0, false);
+            bbRenderer.setSeriesShapesVisible(1, false);
+            bbRenderer.setSeriesShapesVisible(2, false);
+            
             plot.setRenderer(1, bbRenderer);
         } catch (Exception e) {
             System.err.println("Error adding Bollinger Bands: " + e.getMessage());
@@ -300,10 +331,14 @@ public class EnhancedChartPanel extends JPanel {
         
         // Customize renderer for RSI lines
         XYLineAndShapeRenderer linesRenderer = new XYLineAndShapeRenderer();
-        linesRenderer.setSeriesPaint(0, Color.RED);
-        linesRenderer.setSeriesPaint(1, Color.GREEN);
+        linesRenderer.setSeriesPaint(0, new Color(255, 100, 100, 120)); // Light red with transparency
+        linesRenderer.setSeriesPaint(1, new Color(100, 255, 100, 120)); // Light green with transparency
         linesRenderer.setSeriesStroke(0, new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{5}, 0));
         linesRenderer.setSeriesStroke(1, new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{5}, 0));
+        
+        // Make shapes invisible for cleaner look
+        linesRenderer.setSeriesShapesVisible(0, false);
+        linesRenderer.setSeriesShapesVisible(1, false);
         
         plot.setRenderer(1, linesRenderer);
     }

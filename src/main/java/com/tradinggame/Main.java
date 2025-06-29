@@ -25,7 +25,8 @@ public class Main {
                             dialog.getPlayerName(),
                             dialog.getStartDate(),
                             dialog.getEndDate(),
-                            dialog.getInitialBalance()
+                            dialog.getInitialBalance(),
+                            dialog.getTradingFee()
                         );
                         System.out.println("Game initialization completed successfully.");
                         

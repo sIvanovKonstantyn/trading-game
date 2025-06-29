@@ -8,6 +8,7 @@ public class BalancePanel extends JPanel {
     private JLabel usdcBalanceLabel;
     private JLabel btcBalanceLabel;
     private JLabel totalValueLabel;
+    private JLabel tradingFeeLabel;
 
     public BalancePanel(GameState gameState) {
         this.gameState = gameState;
@@ -30,12 +31,14 @@ public class BalancePanel extends JPanel {
         usdcBalanceLabel = new JLabel("USDC: $0.00");
         btcBalanceLabel = new JLabel("BTC: 0.0000");
         totalValueLabel = new JLabel("Total Value: $0.00");
+        tradingFeeLabel = new JLabel("Trading Fee: 0.00%");
         
         // Style labels
         Font boldFont = new Font("Arial", Font.BOLD, 14);
         usdcBalanceLabel.setFont(boldFont);
         btcBalanceLabel.setFont(boldFont);
         totalValueLabel.setFont(boldFont);
+        tradingFeeLabel.setFont(boldFont);
         
         totalValueLabel.setForeground(new Color(0, 100, 0)); // Dark green
     }
@@ -53,6 +56,9 @@ public class BalancePanel extends JPanel {
         
         gbc.gridy = 2;
         add(totalValueLabel, gbc);
+        
+        gbc.gridy = 3;
+        add(tradingFeeLabel, gbc);
     }
 
     private void updateBalance() {
@@ -61,10 +67,12 @@ public class BalancePanel extends JPanel {
             double btcBalance = gameState.getBtcBalance();
             double currentBtcPrice = gameState.getCurrentBtcPrice();
             double totalValue = usdcBalance + (btcBalance * currentBtcPrice);
+            double tradingFee = gameState.getTradingFee();
             
             usdcBalanceLabel.setText(String.format("USDC: $%.2f", usdcBalance));
             btcBalanceLabel.setText(String.format("BTC: %.4f", btcBalance));
             totalValueLabel.setText(String.format("Total Value: $%.2f", totalValue));
+            tradingFeeLabel.setText(String.format("Trading Fee: %.2f%%", tradingFee * 100));
         });
     }
 } 

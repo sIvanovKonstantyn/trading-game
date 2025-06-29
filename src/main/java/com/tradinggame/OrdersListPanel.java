@@ -13,7 +13,7 @@ public class OrdersListPanel extends JPanel {
     public OrdersListPanel(GameState gameState) {
         this.gameState = gameState;
         setLayout(new BorderLayout());
-        setPreferredSize(new Dimension(350, 200));
+        setPreferredSize(new Dimension(330, 200));
         
         initComponents();
         setupLayout();
@@ -48,11 +48,11 @@ public class OrdersListPanel extends JPanel {
         ordersTable.setRowHeight(30); // Increase row height for buttons
         
         // Set column widths
-        ordersTable.getColumnModel().getColumn(0).setPreferredWidth(50);
-        ordersTable.getColumnModel().getColumn(1).setPreferredWidth(80);
-        ordersTable.getColumnModel().getColumn(2).setPreferredWidth(80);
-        ordersTable.getColumnModel().getColumn(3).setPreferredWidth(70);
-        ordersTable.getColumnModel().getColumn(4).setPreferredWidth(70);
+        ordersTable.getColumnModel().getColumn(0).setPreferredWidth(55);
+        ordersTable.getColumnModel().getColumn(1).setPreferredWidth(85);
+        ordersTable.getColumnModel().getColumn(2).setPreferredWidth(85);
+        ordersTable.getColumnModel().getColumn(3).setPreferredWidth(75);
+        ordersTable.getColumnModel().getColumn(4).setPreferredWidth(30);
         
         // Set up button renderer and editor
         ordersTable.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer());
@@ -81,7 +81,7 @@ public class OrdersListPanel extends JPanel {
                     String.format("$%.2f", order.getPrice()),
                     String.format("%.4f", order.getAmount()),
                     order.getOrderDate().toString(),
-                    "Cancel"
+                    "X"
                 };
                 tableModel.addRow(row);
             }

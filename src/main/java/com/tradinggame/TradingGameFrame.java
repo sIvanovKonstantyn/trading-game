@@ -147,21 +147,140 @@ public class TradingGameFrame extends JFrame {
         double pnl = finalBalance - initialBalance;
         double pnlPercentage = (pnl / initialBalance) * 100;
 
-        String message = String.format(
-            "Game Finished!\n\n" +
+        // Create custom results dialog
+        JDialog resultsDialog = new JDialog(this, "Game Results", true);
+        resultsDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        resultsDialog.setResizable(false);
+        resultsDialog.setSize(400, 300);
+        resultsDialog.setLocationRelativeTo(this);
+
+        // Create main panel
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BorderLayout(20, 20));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Results text area
+        JTextArea resultsArea = new JTextArea();
+        resultsArea.setEditable(false);
+        resultsArea.setLineWrap(true);
+        resultsArea.setWrapStyleWord(true);
+        resultsArea.setFont(new Font("Arial", Font.BOLD, 14));
+        resultsArea.setBackground(new Color(248, 248, 248));
+        resultsArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        String resultsText = String.format(
+            "🎉 Game Finished! 🎉\n\n" +
+            "Player: %s\n" +
             "Initial Balance: $%.2f USDC\n" +
             "Final Balance: $%.2f USDC\n" +
             "PnL: $%.2f USDC (%.2f%%)\n\n" +
-            "Thank you for playing!",
-            initialBalance, finalBalance, pnl, pnlPercentage
+            "Thank you for playing the Crypto Trading Simulator!",
+            gameState.getPlayerName(), initialBalance, finalBalance, pnl, pnlPercentage
         );
+        resultsArea.setText(resultsText);
 
-        JOptionPane.showMessageDialog(this, message, "Game Results", JOptionPane.INFORMATION_MESSAGE);
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        
+        JButton newGameButton = new JButton("New Game");
+        newGameButton.setFont(new Font("Arial", Font.BOLD, 14));
+        newGameButton.setPreferredSize(new Dimension(120, 35));
+        
+        JButton exitButton = new JButton("Exit");
+        exitButton.setFont(new Font("Arial", Font.BOLD, 14));
+        exitButton.setPreferredSize(new Dimension(120, 35));
+
+        // Add action listeners
+        newGameButton.addActionListener(e -> {
+            resultsDialog.dispose();
+            restartGame();
+        });
+        
+        exitButton.addActionListener(e -> {
+            resultsDialog.dispose();
+            System.exit(0);
+        });
+
+        buttonPanel.add(newGameButton);
+        buttonPanel.add(exitButton);
+
+        // Add components to main panel
+        mainPanel.add(new JScrollPane(resultsArea), BorderLayout.CENTER);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        resultsDialog.add(mainPanel);
+        resultsDialog.setVisible(true);
     }
 
-    public void startGame(String playerName, LocalDate startDate, LocalDate endDate, double initialBalance) {
+    private void restartGame() {
+        // Dispose current frame
+        this.dispose();
+        
+        // Create new frame and startup dialog
+        SwingUtilities.invokeLater(() -> {
+            TradingGameFrame newFrame = new TradingGameFrame();
+            StartupDialog dialog = new StartupDialog(newFrame);
+            dialog.setVisible(true);
+            
+            if (dialog.isConfirmed()) {
+                // Create loading dialog
+                LoadingDialog loadingDialog = new LoadingDialog(newFrame);
+                
+                // Start game in background thread
+                Thread backgroundThread = new Thread(() -> {
+                    try {
+                        System.out.println("Starting new game initialization in background thread...");
+                        newFrame.startGame(
+                            dialog.getPlayerName(),
+                            dialog.getStartDate(),
+                            dialog.getEndDate(),
+                            dialog.getInitialBalance(),
+                            dialog.getTradingFee()
+                        );
+                        System.out.println("New game initialization completed successfully.");
+                        
+                        SwingUtilities.invokeLater(() -> {
+                            try {
+                                System.out.println("Closing loading dialog and showing new main frame...");
+                                loadingDialog.close();
+                                newFrame.setVisible(true);
+                                System.out.println("Loading dialog closed and new main frame shown.");
+                            } catch (Exception e) {
+                                System.err.println("Error updating UI: " + e.getMessage());
+                                e.printStackTrace();
+                                loadingDialog.close();
+                                newFrame.setVisible(true);
+                            }
+                        });
+                    } catch (Exception e) {
+                        System.err.println("Error during new game initialization: " + e.getMessage());
+                        e.printStackTrace();
+                        
+                        SwingUtilities.invokeLater(() -> {
+                            loadingDialog.close();
+                            newFrame.setVisible(true);
+                        });
+                    }
+                });
+                
+                backgroundThread.start();
+                
+                Timer showDialogTimer = new Timer(50, e -> {
+                    loadingDialog.setVisible(true);
+                });
+                showDialogTimer.setRepeats(false);
+                showDialogTimer.start();
+                
+            } else {
+                // User cancelled, exit the application
+                System.exit(0);
+            }
+        });
+    }
+
+    public void startGame(String playerName, LocalDate startDate, LocalDate endDate, double initialBalance, double tradingFee) {
         // Start the game (this will load all the initial data)
-        gameState.startGame(playerName, startDate, endDate, initialBalance);
+        gameState.startGame(playerName, startDate, endDate, initialBalance, tradingFee);
         updateUI();
     }
 } 

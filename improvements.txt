@@ -9,6 +9,17 @@ Let's add "cancel" button to the open oders table.
 
 When we load initial data on the application bootstrap, it seems like it stucks. Let's add some loading page with "Loading..." text and random funny texts that appread on the loading sceeen.
 
+let's make bollinger chart a bit light color and price chart a bit more solid so it's simpler to see the main price chart
+
+To the initial screen, where we setup the initial balance, let's also add the fee values (default is 0.0001). Let's apply this fee to each transaction so our trading will be more realistic.
+
+Let's make RSI and volumes charts more sold and in the same color theme as price chart to have the consistent UI.
+
+Let's replace "cancel" text of the order canceling buttong to "x" so it will take less space.
+
+On the finish screen, where we show the results, let's add the "New game" button. When we press on this buttong, the game should be relauched from the beginning (endr player name, balance, etc.)
+
+
 COMPLETED FEATURES:
 ✅ RSI, Bollinger Bands, and Volume charts implemented
 ✅ News panel with random crypto news and market updates
@@ -16,3 +27,9 @@ COMPLETED FEATURES:
 ✅ Loading screen with funny messages during initial data loading
 ✅ Progressive data calculation (no "future" data shown)
 ✅ Asynchronous data loading to prevent UI freezing
+✅ Improved chart styling - prominent price line with lighter Bollinger Bands
+✅ Trading fee system with configurable fee rate (default 0.01%)
+✅ Consistent chart styling - RSI and Volume charts match price chart theme
+✅ Compact cancel button - "X" instead of "Cancel" for space efficiency
+✅ Open orders table width increased by 10 points for better visibility
+✅ "New Game" button on finish screen - allows restarting the game from beginning

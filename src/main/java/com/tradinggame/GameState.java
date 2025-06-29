@@ -13,6 +13,7 @@ public class GameState {
     private double initialBalance;
     private double currentBalance;
     private double btcBalance;
+    private double tradingFee; // Trading fee as a percentage (e.g., 0.01 = 1%)
     private boolean gameStarted;
     private boolean gameFinished;
     
@@ -35,13 +36,14 @@ public class GameState {
         this.btcBalance = 0.0;
     }
 
-    public void startGame(String playerName, LocalDate startDate, LocalDate endDate, double initialBalance) {
+    public void startGame(String playerName, LocalDate startDate, LocalDate endDate, double initialBalance, double tradingFee) {
         this.playerName = playerName;
         this.startDate = startDate;
         this.endDate = endDate;
         this.currentDate = startDate;
         this.initialBalance = initialBalance;
         this.currentBalance = initialBalance;
+        this.tradingFee = tradingFee;
         this.gameStarted = true;
         this.gameFinished = false;
         this.priceHistory.clear();
@@ -133,22 +135,32 @@ public class GameState {
         if (order.getType() == OrderType.BUY) {
             // Buy BTC with USDC
             double cost = orderAmount * executionPrice;
-            if (currentBalance >= cost) {
-                currentBalance -= cost;
+            double feeAmount = cost * tradingFee; // Calculate fee
+            double totalCost = cost + feeAmount; // Total cost including fee
+            
+            if (currentBalance >= totalCost) {
+                currentBalance -= totalCost;
                 btcBalance += orderAmount;
                 order.setExecuted(true);
                 order.setExecutionDate(currentDate);
                 order.setExecutionPrice(executionPrice);
+                System.out.println("Buy order executed: " + orderAmount + " BTC at $" + executionPrice + 
+                                 " (Fee: $" + String.format("%.2f", feeAmount) + ")");
             }
         } else {
             // Sell BTC for USDC
             if (btcBalance >= orderAmount) {
                 double revenue = orderAmount * executionPrice;
-                currentBalance += revenue;
+                double feeAmount = revenue * tradingFee; // Calculate fee
+                double netRevenue = revenue - feeAmount; // Net revenue after fee
+                
+                currentBalance += netRevenue;
                 btcBalance -= orderAmount;
                 order.setExecuted(true);
                 order.setExecutionDate(currentDate);
                 order.setExecutionPrice(executionPrice);
+                System.out.println("Sell order executed: " + orderAmount + " BTC at $" + executionPrice + 
+                                 " (Fee: $" + String.format("%.2f", feeAmount) + ")");
             }
         }
         
@@ -203,6 +215,7 @@ public class GameState {
     public double getInitialBalance() { return initialBalance; }
     public double getCurrentBalance() { return currentBalance; }
     public double getBtcBalance() { return btcBalance; }
+    public double getTradingFee() { return tradingFee; }
     public boolean isGameStarted() { return gameStarted; }
     public boolean isGameFinished() { return gameFinished; }
     public List<Order> getOpenOrders() { return new ArrayList<>(openOrders); }
