@@ -160,6 +160,7 @@ public class TradingGameFrame extends JFrame {
     }
 
     public void startGame(String playerName, LocalDate startDate, LocalDate endDate, double initialBalance) {
+        // Start the game (this will load all the initial data)
         gameState.startGame(playerName, startDate, endDate, initialBalance);
         updateUI();
     }

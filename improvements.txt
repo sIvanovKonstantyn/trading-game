@@ -4,3 +4,15 @@ rsi grash, bollinger bands and volumes
 
 Also let's add some tex area, where we will show the news text.
 For now let's just populate the news by random text.
+
+Let's add "cancel" button to the open oders table.
+
+When we load initial data on the application bootstrap, it seems like it stucks. Let's add some loading page with "Loading..." text and random funny texts that appread on the loading sceeen.
+
+COMPLETED FEATURES:
+✅ RSI, Bollinger Bands, and Volume charts implemented
+✅ News panel with random crypto news and market updates
+✅ Cancel button for open orders
+✅ Loading screen with funny messages during initial data loading
+✅ Progressive data calculation (no "future" data shown)
+✅ Asynchronous data loading to prevent UI freezing

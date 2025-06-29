@@ -173,6 +173,18 @@ public class GameState {
         notifyListeners();
     }
 
+    public void cancelOrder(Order order) {
+        if (!gameStarted || gameFinished) {
+            return;
+        }
+        
+        // Only allow canceling orders that are still open
+        if (openOrders.contains(order)) {
+            openOrders.remove(order);
+            notifyListeners();
+        }
+    }
+
     public void addGameStateListener(GameStateListener listener) {
         listeners.add(listener);
     }
@@ -215,10 +227,14 @@ public class GameState {
     }
 
     private void loadPricesForRange(LocalDate from, LocalDate to) {
+        System.out.println("Loading prices from " + from + " to " + to);
         LocalDate date = from;
+        int dayCount = 0;
         while (!date.isAfter(to)) {
             try {
+                System.out.println("Loading prices for date: " + date + " (day " + (++dayCount) + ")");
                 List<PriceData> newPrices = apiClient.getHistoricalPrices(date);
+                System.out.println("Loaded " + newPrices.size() + " price points for " + date);
                 allPriceHistory.addAll(newPrices);
                 if (!date.isBefore(startDate)) {
                     priceHistory.addAll(newPrices);
@@ -229,6 +245,7 @@ public class GameState {
             }
             date = date.plusDays(1);
         }
+        System.out.println("Finished loading prices. Total days processed: " + dayCount);
     }
 
     // For indicator calculations, use allPriceHistory
