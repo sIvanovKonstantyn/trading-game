@@ -15,10 +15,12 @@ public class TradingGameFrame extends JFrame {
     private OrderPanel orderPanel;
     private BalancePanel balancePanel;
     private OrdersListPanel ordersListPanel;
+    private OpenDealsPanel openDealsPanel;
     private NewsPanel newsPanel;
     private JButton nextDayButton;
     private JLabel currentDateLabel;
     private JLabel gameStatusLabel;
+    private boolean gameResultsShown = false;
 
     public TradingGameFrame() {
         setTitle("Crypto Trading Simulator");
@@ -39,6 +41,7 @@ public class TradingGameFrame extends JFrame {
         orderPanel = new OrderPanel(gameState);
         balancePanel = new BalancePanel(gameState);
         ordersListPanel = new OrdersListPanel(gameState);
+        openDealsPanel = new OpenDealsPanel(gameState);
         newsPanel = new NewsPanel(gameState);
         
         // Initialize buttons and labels
@@ -88,10 +91,13 @@ public class TradingGameFrame extends JFrame {
         orderWrapper.add(orderPanel, BorderLayout.CENTER);
         rightPanel.add(orderWrapper, BorderLayout.CENTER);
 
-        // Orders list
+        // Orders and Deals tabbed pane
+        JTabbedPane ordersTabbedPane = new JTabbedPane();
+        ordersTabbedPane.addTab("Open Orders", ordersListPanel);
+        ordersTabbedPane.addTab("Open Deals", openDealsPanel);
         JPanel ordersWrapper = new JPanel(new BorderLayout());
-        ordersWrapper.setBorder(BorderFactory.createTitledBorder("Open Orders"));
-        ordersWrapper.add(ordersListPanel, BorderLayout.CENTER);
+        ordersWrapper.setBorder(BorderFactory.createTitledBorder("Orders & Deals"));
+        ordersWrapper.add(ordersTabbedPane, BorderLayout.CENTER);
         rightPanel.add(ordersWrapper, BorderLayout.SOUTH);
 
         add(rightPanel, BorderLayout.EAST);
@@ -130,7 +136,10 @@ public class TradingGameFrame extends JFrame {
                 if (gameState.isGameFinished()) {
                     gameStatusLabel.setText("Game Status: FINISHED");
                     nextDayButton.setEnabled(false);
-                    showGameResults();
+                    if (!gameResultsShown) {
+                        gameResultsShown = true;
+                        showGameResults();
+                    }
                 } else {
                     gameStatusLabel.setText("Game Status: Active");
                     nextDayButton.setEnabled(true);
@@ -185,35 +194,55 @@ public class TradingGameFrame extends JFrame {
         );
         resultsArea.setText(resultsText);
 
+        // --- Open Deals Summary ---
+        JTextArea dealsSummaryArea = new JTextArea();
+        dealsSummaryArea.setEditable(false);
+        dealsSummaryArea.setLineWrap(true);
+        dealsSummaryArea.setWrapStyleWord(true);
+        dealsSummaryArea.setFont(new Font("Arial", Font.PLAIN, 13));
+        dealsSummaryArea.setBackground(new Color(248, 248, 248));
+        dealsSummaryArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        StringBuilder dealsSummary = new StringBuilder();
+        dealsSummary.append("\nCompleted Deals (PnL):\n");
+        if (openDealsPanel != null && !openDealsPanel.getCompletedDeals().isEmpty()) {
+            java.util.List<String> deals = openDealsPanel.getCompletedDeals();
+            java.util.List<Double> pnls = openDealsPanel.getCompletedPnLs();
+            for (int i = 0; i < deals.size(); i++) {
+                dealsSummary.append(String.format("%s | PnL: $%.2f\n", deals.get(i), pnls.get(i)));
+            }
+        } else {
+            dealsSummary.append("No deals completed.\n");
+        }
+        dealsSummaryArea.setText(dealsSummary.toString());
+        // --- End Open Deals Summary ---
+
         // Leaderboard panel
         LeaderboardPanel leaderboardPanel = new LeaderboardPanel();
 
         // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-        
         JButton newGameButton = new JButton("New Game");
         newGameButton.setFont(new Font("Arial", Font.BOLD, 14));
         newGameButton.setPreferredSize(new Dimension(120, 35));
-        
         JButton exitButton = new JButton("Exit");
         exitButton.setFont(new Font("Arial", Font.BOLD, 14));
         exitButton.setPreferredSize(new Dimension(120, 35));
-
-        // Add action listeners
         newGameButton.addActionListener(e -> {
             resultsDialog.dispose();
             restartGame();
         });
-        
         exitButton.addActionListener(e -> {
             resultsDialog.dispose();
             System.exit(0);
         });
-
         buttonPanel.add(newGameButton);
         buttonPanel.add(exitButton);
 
-        mainPanel.add(resultsArea, BorderLayout.NORTH);
+        // Add components to main panel
+        JPanel northPanel = new JPanel(new BorderLayout());
+        northPanel.add(resultsArea, BorderLayout.NORTH);
+        northPanel.add(dealsSummaryArea, BorderLayout.CENTER);
+        mainPanel.add(northPanel, BorderLayout.NORTH);
         mainPanel.add(new JScrollPane(leaderboardPanel), BorderLayout.CENTER);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
@@ -232,6 +261,8 @@ public class TradingGameFrame extends JFrame {
     private void restartGame() {
         // Dispose current frame
         this.dispose();
+        // Reset the guard for new game
+        gameResultsShown = false;
         
         // Create new frame and startup dialog
         SwingUtilities.invokeLater(() -> {

@@ -32,6 +32,12 @@ Let's make few imrovements:
 Let's add the leaderboard. When we finish the game, it's results (player name, initial balance, final balance, pnl) should be saved in "leaderboard.txt" file and all the file content should be parsend and shown in a scrolled table.
 The table should be ordered by PnL desc.
 
+Let's create the "Open deals" tab beside the "Open orders". There, we want to store the "buy orders" and be able to manuaaly mark the deal as "completed" and place the sum.
+In the summary report we should see all the PnLs of each deal.
+
+
+
+
 COMPLETED FEATURES:
 ✅ RSI, Bollinger Bands, and Volume charts implemented
 ✅ News panel with random crypto news and market updates
