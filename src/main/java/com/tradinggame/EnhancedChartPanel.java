@@ -12,18 +12,27 @@ import org.jfree.data.xy.XYDataset;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 public class EnhancedChartPanel extends JPanel {
     private GameState gameState;
     private ChartPanel chartPanel;
     private JFreeChart chart;
-    private JTabbedPane tabbedPane;
+    private JPanel indicatorPanel;
+    private Map<String, JCheckBox> indicatorCheckboxes = new HashMap<>();
+    private boolean showBollinger = true;
+    private boolean showRSI = true;
+    private boolean showVolume = true;
+    private ChartPanel rsiChartPanel;
 
     public EnhancedChartPanel(GameState gameState) {
         this.gameState = gameState;
@@ -41,109 +50,94 @@ public class EnhancedChartPanel extends JPanel {
     }
 
     private void initComponents() {
-        tabbedPane = new JTabbedPane();
-        
-        // Create different chart tabs
-        tabbedPane.addTab("Price & Bollinger Bands", createPriceChart());
-        tabbedPane.addTab("RSI", createRSIChart());
-        tabbedPane.addTab("Volume", createVolumeChart());
-        
-        add(tabbedPane, BorderLayout.CENTER);
+        setLayout(new BorderLayout());
+        // Indicator selection panel
+        indicatorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        indicatorPanel.setBorder(BorderFactory.createTitledBorder("Indicators"));
+        addIndicatorCheckbox("Bollinger Bands", true);
+        addIndicatorCheckbox("RSI", true);
+        addIndicatorCheckbox("Volume", true);
+        add(indicatorPanel, BorderLayout.NORTH);
+
+        // Main chart panel
+        chartPanel = createMainChartPanel();
+        // RSI chart panel (may be null)
+        rsiChartPanel = showRSI ? createRSIChartPanel() : null;
+
+        JPanel chartsPanel = new JPanel();
+        chartsPanel.setLayout(new BoxLayout(chartsPanel, BoxLayout.Y_AXIS));
+        chartsPanel.add(chartPanel);
+        if (rsiChartPanel != null) chartsPanel.add(rsiChartPanel);
+        add(chartsPanel, BorderLayout.CENTER);
     }
 
-    private ChartPanel createPriceChart() {
-        XYDataset dataset = createPriceDataset();
-        
-        JFreeChart priceChart = ChartFactory.createTimeSeriesChart(
-            "BTC/USDC Price with Bollinger Bands",
+    private void addIndicatorCheckbox(String name, boolean selected) {
+        JCheckBox checkBox = new JCheckBox(name, selected);
+        indicatorCheckboxes.put(name, checkBox);
+        indicatorPanel.add(checkBox);
+        checkBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                switch (name) {
+                    case "Bollinger Bands": showBollinger = checkBox.isSelected(); break;
+                    case "RSI": showRSI = checkBox.isSelected(); break;
+                    case "Volume": showVolume = checkBox.isSelected(); break;
+                }
+                updateCharts();
+            }
+        });
+    }
+
+    private ChartPanel createMainChartPanel() {
+        XYDataset priceDataset = createPriceDataset();
+        JFreeChart mainChart = ChartFactory.createTimeSeriesChart(
+            "BTC/USDC Price Chart",
             "Time",
             "Price (USDC)",
-            dataset,
+            priceDataset,
             true,
             true,
             false
         );
-        
-        // Customize the chart
-        XYPlot plot = (XYPlot) priceChart.getPlot();
+        XYPlot plot = (XYPlot) mainChart.getPlot();
         DateAxis axis = (DateAxis) plot.getDomainAxis();
         axis.setDateFormatOverride(new SimpleDateFormat("MM-dd HH:mm"));
-        
-        // Customize the price line renderer to make it more prominent
+        // Price line
         XYLineAndShapeRenderer priceRenderer = new XYLineAndShapeRenderer();
-        priceRenderer.setSeriesPaint(0, new Color(0, 100, 200)); // Dark blue for price
-        priceRenderer.setSeriesStroke(0, new BasicStroke(2.5f)); // Thicker line
-        priceRenderer.setSeriesShapesVisible(0, false); // No shapes for cleaner look
+        priceRenderer.setSeriesPaint(0, new Color(0, 100, 200));
+        priceRenderer.setSeriesStroke(0, new BasicStroke(2.5f));
+        priceRenderer.setSeriesShapesVisible(0, false);
         plot.setRenderer(0, priceRenderer);
-        
-        // Add Bollinger Bands
-        addBollingerBands(plot);
-        
-        ChartPanel panel = new ChartPanel(priceChart);
-        panel.setPreferredSize(new Dimension(800, 300));
+        // Add indicators
+        if (showBollinger) addBollingerBands(plot);
+        if (showVolume) addVolume(plot);
+        ChartPanel panel = new ChartPanel(mainChart);
+        panel.setPreferredSize(new Dimension(800, 400));
         return panel;
     }
 
-    private ChartPanel createRSIChart() {
-        XYDataset dataset = createRSIDataset();
-        
-        JFreeChart rsiChart = ChartFactory.createTimeSeriesChart(
+    private ChartPanel createRSIChartPanel() {
+        XYDataset rsiDataset = createRSIDataset();
+        JFreeChart rsiChart = org.jfree.chart.ChartFactory.createTimeSeriesChart(
             "RSI (Relative Strength Index)",
             "Time",
             "RSI",
-            dataset,
+            rsiDataset,
             true,
             true,
             false
         );
-        
-        // Customize the chart
-        XYPlot plot = (XYPlot) rsiChart.getPlot();
-        DateAxis axis = (DateAxis) plot.getDomainAxis();
-        axis.setDateFormatOverride(new SimpleDateFormat("MM-dd HH:mm"));
-        
-        // Customize the RSI line renderer to match price chart styling
-        XYLineAndShapeRenderer rsiRenderer = new XYLineAndShapeRenderer();
-        rsiRenderer.setSeriesPaint(0, new Color(0, 100, 200)); // Same dark blue as price chart
-        rsiRenderer.setSeriesStroke(0, new BasicStroke(2.5f)); // Same thickness as price chart
-        rsiRenderer.setSeriesShapesVisible(0, false); // No shapes for cleaner look
+        org.jfree.chart.plot.XYPlot plot = (org.jfree.chart.plot.XYPlot) rsiChart.getPlot();
+        org.jfree.chart.axis.DateAxis axis = (org.jfree.chart.axis.DateAxis) plot.getDomainAxis();
+        axis.setDateFormatOverride(new java.text.SimpleDateFormat("MM-dd HH:mm"));
+        org.jfree.chart.renderer.xy.XYLineAndShapeRenderer rsiRenderer = new org.jfree.chart.renderer.xy.XYLineAndShapeRenderer();
+        rsiRenderer.setSeriesPaint(0, new java.awt.Color(0, 150, 0));
+        rsiRenderer.setSeriesStroke(0, new java.awt.BasicStroke(2.0f));
+        rsiRenderer.setSeriesShapesVisible(0, false);
         plot.setRenderer(0, rsiRenderer);
-        
-        // Add overbought/oversold lines
         addRSILines(plot);
-        
         ChartPanel panel = new ChartPanel(rsiChart);
-        panel.setPreferredSize(new Dimension(800, 200));
-        return panel;
-    }
-
-    private ChartPanel createVolumeChart() {
-        XYDataset dataset = createVolumeDataset();
-        
-        JFreeChart volumeChart = ChartFactory.createTimeSeriesChart(
-            "Trading Volume",
-            "Time",
-            "Volume",
-            dataset,
-            true,
-            true,
-            false
-        );
-        
-        // Customize the chart
-        XYPlot plot = (XYPlot) volumeChart.getPlot();
-        DateAxis axis = (DateAxis) plot.getDomainAxis();
-        axis.setDateFormatOverride(new SimpleDateFormat("MM-dd HH:mm"));
-        
-        // Customize the volume line renderer to match price chart styling
-        XYLineAndShapeRenderer volumeRenderer = new XYLineAndShapeRenderer();
-        volumeRenderer.setSeriesPaint(0, new Color(0, 100, 200)); // Same dark blue as price chart
-        volumeRenderer.setSeriesStroke(0, new BasicStroke(2.5f)); // Same thickness as price chart
-        volumeRenderer.setSeriesShapesVisible(0, false); // No shapes for cleaner look
-        plot.setRenderer(0, volumeRenderer);
-        
-        ChartPanel panel = new ChartPanel(volumeChart);
-        panel.setPreferredSize(new Dimension(800, 200));
+        panel.setPreferredSize(new java.awt.Dimension(800, 150));
         return panel;
     }
 
@@ -216,15 +210,7 @@ public class EnhancedChartPanel extends JPanel {
                     if (!priceData.getTimestamp().toLocalDate().isAfter(currentDate)) {
                         LocalDateTime ldt = priceData.getTimestamp();
                         Date date = Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
-                        
-                        // Generate fresh mock volume data based on price volatility
-                        double price = priceData.getPrice();
-                        double baseVolume = 1000 + Math.random() * 5000;
-                        // Add some correlation with price movement (higher volume for more volatile prices)
-                        double volatilityFactor = 1.0 + Math.abs(price - 50000) / 10000; // 50000 as reference price
-                        double volume = baseVolume * volatilityFactor;
-                        
-                        series.addOrUpdate(new Millisecond(date), volume);
+                        series.addOrUpdate(new Millisecond(date), priceData.getVolume());
                     }
                 } catch (Exception e) {
                     // Skip invalid data points
@@ -343,14 +329,32 @@ public class EnhancedChartPanel extends JPanel {
         plot.setRenderer(1, linesRenderer);
     }
 
+    private void addVolume(XYPlot plot) {
+        XYDataset volumeDataset = createVolumeDataset();
+        int volumeIndex = plot.getDatasetCount();
+        plot.setDataset(volumeIndex, volumeDataset);
+        org.jfree.chart.axis.NumberAxis volumeAxis = new org.jfree.chart.axis.NumberAxis("Volume");
+        volumeAxis.setAutoRangeIncludesZero(true);
+        plot.setRangeAxis(volumeIndex, volumeAxis);
+        plot.mapDatasetToRangeAxis(volumeIndex, volumeIndex);
+        org.jfree.chart.renderer.xy.XYLineAndShapeRenderer volumeRenderer = new org.jfree.chart.renderer.xy.XYLineAndShapeRenderer();
+        volumeRenderer.setSeriesPaint(0, new java.awt.Color(200, 100, 0));
+        volumeRenderer.setSeriesStroke(0, new java.awt.BasicStroke(2.0f));
+        volumeRenderer.setSeriesShapesVisible(0, false);
+        plot.setRenderer(volumeIndex, volumeRenderer);
+    }
+
     private void updateCharts() {
-        SwingUtilities.invokeLater(() -> {
-            if (tabbedPane != null) {
-                tabbedPane.removeAll();
-                tabbedPane.addTab("Price & Bollinger Bands", createPriceChart());
-                tabbedPane.addTab("RSI", createRSIChart());
-                tabbedPane.addTab("Volume", createVolumeChart());
-            }
-        });
+        removeAll();
+        add(indicatorPanel, BorderLayout.NORTH);
+        chartPanel = createMainChartPanel();
+        rsiChartPanel = showRSI ? createRSIChartPanel() : null;
+        JPanel chartsPanel = new JPanel();
+        chartsPanel.setLayout(new BoxLayout(chartsPanel, BoxLayout.Y_AXIS));
+        chartsPanel.add(chartPanel);
+        if (rsiChartPanel != null) chartsPanel.add(rsiChartPanel);
+        add(chartsPanel, BorderLayout.CENTER);
+        revalidate();
+        repaint();
     }
 } 

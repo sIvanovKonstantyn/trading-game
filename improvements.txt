@@ -29,6 +29,8 @@ In the summary report we should see all the PnLs of each deal.
 
 - Add file-based cache for Binance API price data. Store previously loaded data in cache/SYMBOL/YYYY-MM-DD.json and load from cache before making network requests.
 
+- Add UI controls above the chart to select which technical indicators (Bollinger Bands, RSI, Volume) to display. Indicators should be shown or hidden based on user selection, following best practices from leading crypto exchange platforms.
+
 
 
 

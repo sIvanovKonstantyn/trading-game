@@ -94,7 +94,8 @@ public class GameState {
         for (int hour = 0; hour < 24; hour += 4) {
             LocalDateTime timestamp = date.atTime(hour, 0);
             double price = basePrice + (Math.random() - 0.5) * 2000; // ±1000 variation
-            PriceData priceData = new PriceData(timestamp, price);
+            double volume = 1000 + Math.random() * 5000; // Mock volume
+            PriceData priceData = new PriceData(timestamp, price, volume);
             allPriceHistory.add(priceData);
             if (!date.isBefore(startDate)) {
                 priceHistory.add(priceData);

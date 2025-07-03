@@ -52,8 +52,9 @@ public class BinanceApiClient {
                 JsonArray kline = element.getAsJsonArray();
                 long timestamp = kline.get(0).getAsLong();
                 double closePrice = Double.parseDouble(kline.get(4).getAsString());
+                double volume = Double.parseDouble(kline.get(5).getAsString());
                 LocalDateTime dateTime = LocalDateTime.ofEpochSecond(timestamp / 1000, 0, ZoneOffset.UTC);
-                prices.add(new PriceData(dateTime, closePrice));
+                prices.add(new PriceData(dateTime, closePrice, volume));
             }
             return prices;
         }
@@ -82,10 +83,9 @@ public class BinanceApiClient {
                 JsonArray kline = element.getAsJsonArray();
                 long timestamp = kline.get(0).getAsLong();
                 double closePrice = Double.parseDouble(kline.get(4).getAsString());
-                
-                // Use close price for simplicity
+                double volume = Double.parseDouble(kline.get(5).getAsString());
                 LocalDateTime dateTime = LocalDateTime.ofEpochSecond(timestamp / 1000, 0, ZoneOffset.UTC);
-                prices.add(new PriceData(dateTime, closePrice));
+                prices.add(new PriceData(dateTime, closePrice, volume));
             }
             
             return prices;
