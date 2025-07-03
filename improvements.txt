@@ -2,9 +2,6 @@ Let's implement new features:
 Besides that price graph, let's show:
 rsi grash, bollinger bands and volumes
 
-Also let's add some tex area, where we will show the news text.
-For now let's just populate the news by random text.
-
 Let's add "cancel" button to the open oders table.
 
 When we load initial data on the application bootstrap, it seems like it stucks. Let's add some loading page with "Loading..." text and random funny texts that appread on the loading sceeen.
@@ -19,11 +16,6 @@ Let's replace "cancel" text of the order canceling buttong to "x" so it will tak
 
 On the finish screen, where we show the results, let's add the "New game" button. When we press on this buttong, the game should be relauched from the beginning (endr player name, balance, etc.)
 
-Now, let's implements the real "News" logic. Given: we need to have "OPEN_API_KEY" env. variable. If we don't have it - out news text area shows: "Not awailable. Specify the OPEN_API_KEY to have this feature".
-If OPEN_API_KEY is specified, for each "next day" click (and on the opening for the first day as well) we call OpenAI chat API with the following prompt:
-"Make the news analyze that affect the cryptomarket and show the result with dates in the table view. Date: {currentDate}.
-{currentDate} - the the current date of the game (each "next day" clisk increases it).
-
 
 Let's make few imrovements:
 1. Let's add ability to specify sum in usdc, which we want to buy/sell. The amount of btc will be recalcualted according to the price and usdc sum.
@@ -35,12 +27,13 @@ The table should be ordered by PnL desc.
 Let's create the "Open deals" tab beside the "Open orders". There, we want to store the "buy orders" and be able to manuaaly mark the deal as "completed" and place the sum.
 In the summary report we should see all the PnLs of each deal.
 
+- Add file-based cache for Binance API price data. Store previously loaded data in cache/SYMBOL/YYYY-MM-DD.json and load from cache before making network requests.
+
 
 
 
 COMPLETED FEATURES:
 ✅ RSI, Bollinger Bands, and Volume charts implemented
-✅ News panel with random crypto news and market updates
 ✅ Cancel button for open orders
 ✅ Loading screen with funny messages during initial data loading
 ✅ Progressive data calculation (no "future" data shown)

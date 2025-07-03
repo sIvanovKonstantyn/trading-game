@@ -16,7 +16,6 @@ public class TradingGameFrame extends JFrame {
     private BalancePanel balancePanel;
     private OrdersListPanel ordersListPanel;
     private OpenDealsPanel openDealsPanel;
-    private NewsPanel newsPanel;
     private JButton nextDayButton;
     private JLabel currentDateLabel;
     private JLabel gameStatusLabel;
@@ -42,7 +41,6 @@ public class TradingGameFrame extends JFrame {
         balancePanel = new BalancePanel(gameState);
         ordersListPanel = new OrdersListPanel(gameState);
         openDealsPanel = new OpenDealsPanel(gameState);
-        newsPanel = new NewsPanel(gameState);
         
         // Initialize buttons and labels
         nextDayButton = new JButton("Next Day");
@@ -74,7 +72,7 @@ public class TradingGameFrame extends JFrame {
         centerPanel.add(chartPanel, BorderLayout.CENTER);
         add(centerPanel, BorderLayout.CENTER);
 
-        // Right panel for trading controls and news
+        // Right panel for trading controls
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setPreferredSize(new Dimension(350, 0));
         rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -101,12 +99,6 @@ public class TradingGameFrame extends JFrame {
         rightPanel.add(ordersWrapper, BorderLayout.SOUTH);
 
         add(rightPanel, BorderLayout.EAST);
-
-        // News panel at bottom
-        JPanel newsWrapper = new JPanel(new BorderLayout());
-        newsWrapper.setBorder(BorderFactory.createTitledBorder("Market News"));
-        newsWrapper.add(newsPanel, BorderLayout.CENTER);
-        add(newsWrapper, BorderLayout.SOUTH);
     }
 
     private void setupEventHandlers() {
