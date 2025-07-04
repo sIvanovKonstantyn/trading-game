@@ -1,4 +1,4 @@
-package com.tradinggame;
+package com.tradinggame.ui;
 
 import javax.swing.*;
 import java.awt.*;
@@ -6,8 +6,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.io.*;
 import java.util.*;
+import com.tradinggame.state.GameState;
+import com.tradinggame.state.SymbolState;
+import com.tradinggame.dtos.GameStateListener;
+import com.tradinggame.utils.DialogUtils;
+import com.tradinggame.utils.FileUtils;
 
 public class TradingGameFrame extends JFrame {
     private GameState gameState;
@@ -281,11 +285,7 @@ public class TradingGameFrame extends JFrame {
     }
 
     private void saveToLeaderboard(String playerName, double initial, double fin, double pnl) {
-        try (FileWriter fw = new FileWriter("leaderboard.txt", true); BufferedWriter bw = new BufferedWriter(fw)) {
-            bw.write(String.format("%s,%.2f,%.2f,%.2f\n", playerName, initial, fin, pnl));
-        } catch (IOException e) {
-            System.err.println("Failed to write to leaderboard.txt: " + e.getMessage());
-        }
+        FileUtils.appendLine("leaderboard.txt", String.format("%s,%.2f,%.2f,%.2f", playerName, initial, fin, pnl));
     }
 
     private void restartGame() {
@@ -348,6 +348,8 @@ public class TradingGameFrame extends JFrame {
                 });
                 showDialogTimer.setRepeats(false);
                 showDialogTimer.start();
+                
+                DialogUtils.startOneShotTimer(50, () -> loadingDialog.setVisible(true));
                 
             } else {
                 // User cancelled, exit the application

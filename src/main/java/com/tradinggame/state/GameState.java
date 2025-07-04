@@ -1,10 +1,15 @@
-package com.tradinggame;
+package com.tradinggame.state;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import com.tradinggame.dtos.Order;
+import com.tradinggame.dtos.OrderType;
+import com.tradinggame.dtos.GameStateListener;
+import com.tradinggame.dtos.PriceData;
+import com.tradinggame.clients.BinanceApiClient;
 
 public class GameState {
     private String playerName;
@@ -37,7 +42,7 @@ public class GameState {
         this.listeners = new CopyOnWriteArrayList<>();
         this.apiClient = new BinanceApiClient();
         // Initialize with default symbol
-        symbolStates.put(currentSymbol, new SymbolState(currentSymbol, 10000, 0.001)); // Default values, will be set in startGame
+        symbolStates.put(currentSymbol, new SymbolState(currentSymbol, 0.001)); // Default values, will be set in startGame
     }
 
     public void startGame(String playerName, LocalDate startDate, LocalDate endDate, double initialBalance, double tradingFee) {
@@ -201,7 +206,7 @@ public class GameState {
         }
         SymbolState state = symbolStates.get(symbol);
         if (state == null) {
-            state = new SymbolState(symbol, initialBalance, tradingFee);
+            state = new SymbolState(symbol, tradingFee);
             symbolStates.put(symbol, state);
         }
         Order order = new Order(type, price, amount, orderDate);
@@ -261,13 +266,6 @@ public class GameState {
         return result;
     }
 
-    public double getCurrentBtcPrice() {
-        if (priceHistory.isEmpty()) {
-            return 50000.0; // Default price
-        }
-        return priceHistory.get(priceHistory.size() - 1).getPrice();
-    }
-
     private void loadPricesForRange(SymbolState state, LocalDate from, LocalDate to) {
         System.out.println("Loading prices for symbol " + state.getSymbol() + " from " + from + " to " + to);
         LocalDate date = from;
@@ -310,11 +308,9 @@ public class GameState {
     }
 
     public void setCurrentSymbol(String symbol) {
-        boolean needsLoad = false;
         if (!symbolStates.containsKey(symbol)) {
             // Use default initial balance and trading fee for new symbol
-            symbolStates.put(symbol, new SymbolState(symbol, 10000, 0.001));
-            needsLoad = true;
+            symbolStates.put(symbol, new SymbolState(symbol, 0.001));
         }
         this.currentSymbol = symbol;
         SymbolState state = symbolStates.get(symbol);

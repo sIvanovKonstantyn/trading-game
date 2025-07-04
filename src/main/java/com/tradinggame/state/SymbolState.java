@@ -1,9 +1,10 @@
-package com.tradinggame;
+package com.tradinggame.state;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import com.tradinggame.dtos.Order;
+import com.tradinggame.dtos.PriceData;
+import com.tradinggame.clients.BinanceApiClient;
 
 public class SymbolState {
     private final String symbol;
@@ -14,7 +15,7 @@ public class SymbolState {
     private List<PriceData> allPriceHistory;
     private BinanceApiClient apiClient;
 
-    public SymbolState(String symbol, double initialBalance, double tradingFee) {
+    public SymbolState(String symbol, double tradingFee) {
         this.symbol = symbol;
         this.tradingFee = tradingFee;
         this.openOrders = new ArrayList<>();

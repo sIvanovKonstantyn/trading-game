@@ -1,4 +1,4 @@
-package com.tradinggame;
+package com.tradinggame.ui;
 
 import javax.swing.*;
 import java.awt.*;
@@ -7,6 +7,11 @@ import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import com.tradinggame.state.GameState;
+import com.tradinggame.state.SymbolState;
+import com.tradinggame.dtos.OrderType;
+import com.tradinggame.dtos.GameStateListener;
+import com.tradinggame.utils.OrderUtils;
 
 public class OrderPanel extends JPanel {
     private GameState gameState;
@@ -214,29 +219,17 @@ public class OrderPanel extends JPanel {
     }
     
     private void calculateUsdcAmount() {
-        try {
-            double price = Double.parseDouble(priceField.getText());
-            double btcAmount = Double.parseDouble(amountField.getText());
-            if (price > 0 && btcAmount > 0) {
-                double usdcAmount = btcAmount * price;
-                usdcAmountField.setText(String.format("%.2f", usdcAmount));
-            }
-        } catch (NumberFormatException ex) {
-            // Ignore invalid input
-        }
+        double price = OrderUtils.parseDoubleOrDefault(priceField.getText(), 0);
+        double btcAmount = OrderUtils.parseDoubleOrDefault(amountField.getText(), 0);
+        double usdcAmount = OrderUtils.btcToUsdc(btcAmount, price);
+        usdcAmountField.setText(String.format("%.2f", usdcAmount));
     }
     
     private void calculateBtcAmount() {
-        try {
-            double price = Double.parseDouble(priceField.getText());
-            double usdcAmount = Double.parseDouble(usdcAmountField.getText());
-            if (price > 0 && usdcAmount > 0) {
-                double btcAmount = usdcAmount / price;
-                amountField.setText(String.format("%.6f", btcAmount));
-            }
-        } catch (NumberFormatException ex) {
-            // Ignore invalid input
-        }
+        double price = OrderUtils.parseDoubleOrDefault(priceField.getText(), 0);
+        double usdcAmount = OrderUtils.parseDoubleOrDefault(usdcAmountField.getText(), 0);
+        double btcAmount = OrderUtils.usdcToBtc(usdcAmount, price);
+        amountField.setText(String.format("%.4f", btcAmount));
     }
 
     private void placeOrder() {

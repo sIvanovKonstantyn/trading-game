@@ -1,9 +1,14 @@
-package com.tradinggame;
+package com.tradinggame.ui;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
+import com.tradinggame.state.GameState;
+import com.tradinggame.dtos.Order;
+import com.tradinggame.dtos.OrderType;
+import com.tradinggame.state.SymbolState;
+import com.tradinggame.dtos.GameStateListener;
+import com.tradinggame.utils.TableUtils;
 
 public class OpenDealsPanel extends JPanel {
     private GameState gameState;
@@ -61,8 +66,31 @@ public class OpenDealsPanel extends JPanel {
         dealsTable.getColumnModel().getColumn(5).setPreferredWidth(85);
         dealsTable.getColumnModel().getColumn(6).setPreferredWidth(85);
         // Button renderer/editor for 'Mark Completed'
-        dealsTable.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer());
-        dealsTable.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor(new JCheckBox()));
+        dealsTable.getColumnModel().getColumn(4).setCellRenderer(
+            TableUtils.createButtonRenderer(new Color(200, 230, 255), Color.BLACK)
+        );
+        dealsTable.getColumnModel().getColumn(4).setCellEditor(
+            TableUtils.createButtonEditor(new Color(200, 230, 255), Color.BLACK, () -> {
+                int row = dealsTable.getSelectedRow();
+                if (row >= 0) {
+                    String closePriceStr = (String) tableModel.getValueAt(row, 5);
+                    try {
+                        double closePrice = Double.parseDouble(closePriceStr);
+                        Order order = openDeals.get(row);
+                        double pnl = (closePrice - order.getPrice()) * order.getAmount();
+                        tableModel.setValueAt(String.format("$%.2f", pnl), row, 6);
+                        completedDeals.add(String.format("Buy %.4f BTC @ $%.2f, Closed @ $%.2f", order.getAmount(), order.getPrice(), closePrice));
+                        completedPnLs.add(pnl);
+                        openDeals.remove(row);
+                        javax.swing.Timer timer = new javax.swing.Timer(700, e -> updateDealsList());
+                        timer.setRepeats(false);
+                        timer.start();
+                    } catch (NumberFormatException ex) {
+                        JOptionPane.showMessageDialog(OpenDealsPanel.this, "Enter a valid close price.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            })
+        );
     }
 
     private void setupLayout() {
@@ -113,75 +141,6 @@ public class OpenDealsPanel extends JPanel {
     }
     public java.util.List<Double> getCompletedPnLs() {
         return new java.util.ArrayList<>(completedPnLs);
-    }
-
-    // Button renderer for the Complete column
-    private class ButtonRenderer extends JButton implements javax.swing.table.TableCellRenderer {
-        public ButtonRenderer() { setOpaque(true); setBackground(new Color(200, 230, 255)); setForeground(Color.BLACK); }
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                boolean isSelected, boolean hasFocus, int row, int column) {
-            setText((value == null) ? "" : value.toString());
-            return this;
-        }
-    }
-
-    // Button editor for the Complete column
-    private class ButtonEditor extends DefaultCellEditor {
-        protected JButton button;
-        private String label;
-        private boolean isPushed;
-        public ButtonEditor(JCheckBox checkBox) {
-            super(checkBox);
-            button = new JButton();
-            button.setOpaque(true);
-            button.setBackground(new Color(200, 230, 255));
-            button.setForeground(Color.BLACK);
-            button.addActionListener(e -> fireEditingStopped());
-        }
-        @Override
-        public Component getTableCellEditorComponent(JTable table, Object value,
-                boolean isSelected, int row, int column) {
-            label = (value == null) ? "" : value.toString();
-            button.setText(label);
-            isPushed = true;
-            return button;
-        }
-        @Override
-        public Object getCellEditorValue() {
-            if (isPushed) {
-                int row = dealsTable.getSelectedRow();
-                if (row >= 0) {
-                    // Get close price from the table
-                    String closePriceStr = (String) tableModel.getValueAt(row, 5);
-                    try {
-                        double closePrice = Double.parseDouble(closePriceStr);
-                        // Calculate PnL before removing
-                        Order order = openDeals.get(row);
-                        double pnl = (closePrice - order.getPrice()) * order.getAmount();
-                        tableModel.setValueAt(String.format("$%.2f", pnl), row, 6);
-                        // Store completed deal info
-                        completedDeals.add(String.format("Buy %.4f BTC @ $%.2f, Closed @ $%.2f", order.getAmount(), order.getPrice(), closePrice));
-                        completedPnLs.add(pnl);
-                        // Remove from openDeals after showing PnL
-                        openDeals.remove(row);
-                        // Update table after a short delay to let user see PnL
-                        javax.swing.Timer timer = new javax.swing.Timer(700, e -> updateDealsList());
-                        timer.setRepeats(false);
-                        timer.start();
-                    } catch (NumberFormatException ex) {
-                        JOptionPane.showMessageDialog(OpenDealsPanel.this, "Enter a valid close price.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
-                    }
-                }
-            }
-            isPushed = false;
-            return label;
-        }
-        @Override
-        public boolean stopCellEditing() {
-            isPushed = false;
-            return super.stopCellEditing();
-        }
     }
 
     public void updateForSymbol() {

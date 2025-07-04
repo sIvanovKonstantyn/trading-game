@@ -1,4 +1,4 @@
-package com.tradinggame;
+package com.tradinggame.dtos;
 
 import java.time.LocalDateTime;
 

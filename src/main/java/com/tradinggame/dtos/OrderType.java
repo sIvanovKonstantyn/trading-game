@@ -1,4 +1,4 @@
-package com.tradinggame;
+package com.tradinggame.dtos;
 
 public enum OrderType {
     BUY("Buy"),

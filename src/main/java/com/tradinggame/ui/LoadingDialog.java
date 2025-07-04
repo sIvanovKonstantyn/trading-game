@@ -1,4 +1,4 @@
-package com.tradinggame;
+package com.tradinggame.ui;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,7 +8,6 @@ public class LoadingDialog extends JDialog {
     private JLabel loadingLabel;
     private JLabel messageLabel;
     private Timer messageTimer;
-    private int messageIndex = 0;
     private Random random = new Random();
     
     private final String[] funnyMessages = {

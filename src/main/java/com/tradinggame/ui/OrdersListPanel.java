@@ -1,9 +1,14 @@
-package com.tradinggame;
+package com.tradinggame.ui;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+import com.tradinggame.state.GameState;
+import com.tradinggame.dtos.Order;
+import com.tradinggame.state.SymbolState;
+import com.tradinggame.dtos.GameStateListener;
+import com.tradinggame.utils.TableUtils;
 
 public class OrdersListPanel extends JPanel {
     private GameState gameState;
@@ -63,8 +68,19 @@ public class OrdersListPanel extends JPanel {
         ordersTable.getColumnModel().getColumn(5).setPreferredWidth(30);
         
         // Set up button renderer and editor
-        ordersTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer());
-        ordersTable.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor(new JCheckBox()));
+        ordersTable.getColumnModel().getColumn(5).setCellRenderer(
+            TableUtils.createButtonRenderer(new Color(200, 230, 255), Color.BLACK)
+        );
+        ordersTable.getColumnModel().getColumn(5).setCellEditor(
+            TableUtils.createButtonEditor(new Color(200, 230, 255), Color.BLACK, () -> {
+                int row = ordersTable.getSelectedRow();
+                if (row >= 0 && row < getSymbolState().getOpenOrders().size()) {
+                    java.util.List<Order> openOrders = getSymbolState().getOpenOrders();
+                    Order orderToCancel = openOrders.get(row);
+                    gameState.cancelOrder(orderToCancel);
+                }
+            })
+        );
     }
 
     private void setupLayout() {
@@ -96,68 +112,6 @@ public class OrdersListPanel extends JPanel {
                 tableModel.addRow(row);
             }
         });
-    }
-    
-    // Button renderer for the Cancel column
-    private class ButtonRenderer extends JButton implements javax.swing.table.TableCellRenderer {
-        public ButtonRenderer() {
-            setOpaque(true);
-            setBackground(new Color(200, 230, 255));
-            setForeground(Color.BLACK);
-        }
-        
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                boolean isSelected, boolean hasFocus, int row, int column) {
-            setText((value == null) ? "" : value.toString());
-            return this;
-        }
-    }
-    
-    // Button editor for the Cancel column
-    private class ButtonEditor extends DefaultCellEditor {
-        protected JButton button;
-        private String label;
-        private boolean isPushed;
-        
-        public ButtonEditor(JCheckBox checkBox) {
-            super(checkBox);
-            button = new JButton();
-            button.setOpaque(true);
-            button.setBackground(new Color(200, 230, 255));
-            button.setForeground(Color.BLACK);
-            button.addActionListener(e -> fireEditingStopped());
-        }
-        
-        @Override
-        public Component getTableCellEditorComponent(JTable table, Object value,
-                boolean isSelected, int row, int column) {
-            label = (value == null) ? "" : value.toString();
-            button.setText(label);
-            isPushed = true;
-            return button;
-        }
-        
-        @Override
-        public Object getCellEditorValue() {
-            if (isPushed) {
-                // Cancel the order at the selected row
-                int row = ordersTable.getSelectedRow();
-                if (row >= 0 && row < getSymbolState().getOpenOrders().size()) {
-                    List<Order> openOrders = getSymbolState().getOpenOrders();
-                    Order orderToCancel = openOrders.get(row);
-                    gameState.cancelOrder(orderToCancel);
-                }
-            }
-            isPushed = false;
-            return label;
-        }
-        
-        @Override
-        public boolean stopCellEditing() {
-            isPushed = false;
-            return super.stopCellEditing();
-        }
     }
 
     public void updateForSymbol() {

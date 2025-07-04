@@ -1,9 +1,12 @@
-package com.tradinggame;
+package com.tradinggame.ui;
 
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.table.DefaultTableModel;
 import java.util.Map;
+import com.tradinggame.state.GameState;
+import com.tradinggame.state.SymbolState;
+import com.tradinggame.dtos.GameStateListener;
 
 public class BalancePanel extends JPanel {
     private GameState gameState;

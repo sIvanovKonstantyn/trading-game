@@ -1,4 +1,4 @@
-package com.tradinggame;
+package com.tradinggame.clients;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.tradinggame.dtos.PriceData;
 
 public class BinanceApiClient {
     private static final String BASE_URL = "https://api.binance.com/api/v3";

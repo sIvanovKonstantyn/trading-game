@@ -1,16 +1,20 @@
-package com.tradinggame;
+package com.tradinggame.ui;
 
+import com.tradinggame.dtos.GameStateListener;
+import com.tradinggame.dtos.PriceData;
+import com.tradinggame.indicators.TechnicalIndicators;
+import com.tradinggame.state.GameState;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
-import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.data.time.*;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.chart.renderer.xy.CandlestickRenderer;
+import org.jfree.data.time.Millisecond;
+import org.jfree.data.time.TimeSeries;
+import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.DefaultHighLowDataset;
+import org.jfree.data.xy.XYDataset;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,10 +25,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-import java.text.NumberFormat;
 
 public class EnhancedChartPanel extends JPanel {
     private GameState gameState;

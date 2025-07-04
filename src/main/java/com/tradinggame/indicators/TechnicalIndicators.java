@@ -1,8 +1,9 @@
-package com.tradinggame;
+package com.tradinggame.indicators;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import java.util.ArrayList;
 import java.util.List;
+import com.tradinggame.dtos.PriceData;
 
 public class TechnicalIndicators {
     
@@ -125,47 +126,6 @@ public class TechnicalIndicators {
         double lowerBand = middleBand - (stdDev * standardDeviation);
         
         return new BollingerBands(upperBand, middleBand, lowerBand);
-    }
-    
-    /**
-     * Calculate volume data (mock data for now)
-     * @param prices List of prices
-     * @return Volume data
-     */
-    public static VolumeData calculateVolume(List<PriceData> prices) {
-        if (prices.isEmpty()) {
-            return new VolumeData(0, 0);
-        }
-        
-        // Generate mock volume based on price volatility
-        double currentPrice = prices.get(prices.size() - 1).getPrice();
-        double baseVolume = 1000 + Math.random() * 5000; // Random volume between 1000-6000
-        
-        // Calculate average volume over last 10 periods
-        double totalVolume = 0;
-        int count = Math.min(10, prices.size());
-        for (int i = 0; i < count; i++) {
-            totalVolume += 1000 + Math.random() * 5000;
-        }
-        double averageVolume = totalVolume / count;
-        
-        return new VolumeData(baseVolume, averageVolume);
-    }
-    
-    /**
-     * Calculate VWAP (Volume-Weighted Average Price)
-     * @param prices List of PriceData
-     * @return VWAP value, or 0 if no volume
-     */
-    public static double calculateVWAP(List<PriceData> prices) {
-        double pvSum = 0;
-        double vSum = 0;
-        for (PriceData pd : prices) {
-            pvSum += pd.getPrice() * pd.getVolume();
-            vSum += pd.getVolume();
-        }
-        if (vSum == 0) return 0;
-        return pvSum / vSum;
     }
     
     /**

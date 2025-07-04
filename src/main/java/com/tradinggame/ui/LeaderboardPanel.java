@@ -1,10 +1,9 @@
-package com.tradinggame;
+package com.tradinggame.ui;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.io.*;
-import java.util.*;
+import com.tradinggame.utils.FileUtils;
 
 public class LeaderboardPanel extends JPanel {
     private JTable table;
@@ -33,20 +32,15 @@ public class LeaderboardPanel extends JPanel {
 
     private void loadLeaderboard() {
         java.util.List<LeaderboardEntry> entries = new java.util.ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("leaderboard.txt"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length == 4) {
-                    String player = parts[0];
-                    double initial = Double.parseDouble(parts[1]);
-                    double fin = Double.parseDouble(parts[2]);
-                    double pnl = Double.parseDouble(parts[3]);
-                    entries.add(new LeaderboardEntry(player, initial, fin, pnl));
-                }
+        for (String line : FileUtils.readAllLines("leaderboard.txt")) {
+            String[] parts = line.split(",");
+            if (parts.length == 4) {
+                String player = parts[0];
+                double initial = Double.parseDouble(parts[1]);
+                double fin = Double.parseDouble(parts[2]);
+                double pnl = Double.parseDouble(parts[3]);
+                entries.add(new LeaderboardEntry(player, initial, fin, pnl));
             }
-        } catch (IOException e) {
-            // File may not exist yet, that's fine
         }
         // Sort by PnL descending
         entries.sort((a, b) -> Double.compare(b.pnl, a.pnl));

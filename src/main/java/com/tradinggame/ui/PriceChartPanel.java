@@ -1,25 +1,23 @@
-package com.tradinggame;
+package com.tradinggame.ui;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
-import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.time.*;
 import org.jfree.data.xy.XYDataset;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.awt.geom.Rectangle2D;
+import com.tradinggame.state.GameState;
+import com.tradinggame.dtos.GameStateListener;
+import com.tradinggame.dtos.PriceData;
 
 public class PriceChartPanel extends JPanel {
     private GameState gameState;

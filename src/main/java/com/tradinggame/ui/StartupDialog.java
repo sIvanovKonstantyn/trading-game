@@ -1,4 +1,4 @@
-package com.tradinggame;
+package com.tradinggame.ui;
 
 import javax.swing.*;
 import java.awt.*;

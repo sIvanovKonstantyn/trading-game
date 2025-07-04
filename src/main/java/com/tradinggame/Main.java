@@ -1,7 +1,10 @@
 package com.tradinggame;
 
 import javax.swing.*;
-import java.awt.*;
+import com.tradinggame.ui.TradingGameFrame;
+import com.tradinggame.ui.StartupDialog;
+import com.tradinggame.ui.LoadingDialog;
+import com.tradinggame.utils.DialogUtils;
 
 public class Main {
     public static void main(String[] args) {
@@ -61,11 +64,7 @@ public class Main {
                 backgroundThread.start();
                 
                 // Show loading dialog after a very short delay to ensure background thread starts
-                Timer showDialogTimer = new Timer(50, e -> {
-                    loadingDialog.setVisible(true);
-                });
-                showDialogTimer.setRepeats(false);
-                showDialogTimer.start();
+                DialogUtils.startOneShotTimer(50, () -> loadingDialog.setVisible(true));
                 
             } else {
                 // User cancelled, exit the application
