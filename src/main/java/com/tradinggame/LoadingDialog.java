@@ -67,16 +67,20 @@ public class LoadingDialog extends JDialog {
     private void initComponents() {
         loadingLabel = new JLabel("Loading...", SwingConstants.CENTER);
         loadingLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        loadingLabel.setForeground(new Color(52, 152, 219));
+        loadingLabel.setForeground(new Color(33, 150, 243));
         
         messageLabel = new JLabel("", SwingConstants.CENTER);
         messageLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        messageLabel.setForeground(new Color(44, 62, 80));
+        messageLabel.setForeground(Color.BLACK);
         
         // Create a progress bar for visual feedback
         JProgressBar progressBar = new JProgressBar();
         progressBar.setIndeterminate(true);
         progressBar.setPreferredSize(new Dimension(300, 20));
+        progressBar.setMaximumSize(new Dimension(300, 20));
+        progressBar.setAlignmentX(Component.CENTER_ALIGNMENT);
+        progressBar.setBackground(new Color(240, 240, 240));
+        progressBar.setForeground(new Color(33, 150, 243));
     }
 
     private void setupLayout() {
@@ -86,7 +90,7 @@ public class LoadingDialog extends JDialog {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
-        mainPanel.setBackground(new Color(236, 240, 241));
+        mainPanel.setBackground(Color.WHITE);
         
         // Add components with spacing
         mainPanel.add(Box.createVerticalGlue());
@@ -94,7 +98,7 @@ public class LoadingDialog extends JDialog {
         // App title
         JLabel titleLabel = new JLabel("Crypto Trading Simulator", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
-        titleLabel.setForeground(new Color(41, 128, 185));
+        titleLabel.setForeground(new Color(33, 150, 243));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(titleLabel);
         
@@ -112,6 +116,8 @@ public class LoadingDialog extends JDialog {
         progressBar.setPreferredSize(new Dimension(300, 20));
         progressBar.setMaximumSize(new Dimension(300, 20));
         progressBar.setAlignmentX(Component.CENTER_ALIGNMENT);
+        progressBar.setBackground(new Color(240, 240, 240));
+        progressBar.setForeground(new Color(33, 150, 243));
         mainPanel.add(progressBar);
         
         mainPanel.add(Box.createVerticalStrut(20));

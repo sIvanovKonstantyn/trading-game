@@ -12,6 +12,7 @@ public class LeaderboardPanel extends JPanel {
 
     public LeaderboardPanel() {
         setLayout(new BorderLayout());
+        setBackground(Color.WHITE);
         String[] columns = {"Player", "Initial Balance", "Final Balance", "PnL"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -20,8 +21,13 @@ public class LeaderboardPanel extends JPanel {
             }
         };
         table = new JTable(tableModel);
+        table.setBackground(Color.WHITE);
+        table.setForeground(Color.BLACK);
+        table.getTableHeader().setBackground(new Color(240, 240, 240));
+        table.getTableHeader().setForeground(Color.BLACK);
         loadLeaderboard();
         JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.getViewport().setBackground(Color.WHITE);
         add(scrollPane, BorderLayout.CENTER);
     }
 

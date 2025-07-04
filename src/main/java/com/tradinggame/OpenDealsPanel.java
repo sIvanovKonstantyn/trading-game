@@ -17,6 +17,7 @@ public class OpenDealsPanel extends JPanel {
         this.gameState = gameState;
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(330, 200));
+        setBackground(Color.WHITE);
         initComponents();
         setupLayout();
         refreshOpenDeals();
@@ -44,7 +45,13 @@ public class OpenDealsPanel extends JPanel {
         dealsTable = new JTable(tableModel);
         dealsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         dealsTable.getTableHeader().setReorderingAllowed(false);
-        dealsTable.setRowHeight(30);
+        dealsTable.setRowHeight(28);
+        dealsTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        dealsTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        dealsTable.setBackground(Color.WHITE);
+        dealsTable.setForeground(Color.BLACK);
+        dealsTable.getTableHeader().setBackground(new Color(240, 240, 240));
+        dealsTable.getTableHeader().setForeground(Color.BLACK);
         // Set column widths
         dealsTable.getColumnModel().getColumn(0).setPreferredWidth(65); // Symbol
         dealsTable.getColumnModel().getColumn(1).setPreferredWidth(85);
@@ -62,6 +69,7 @@ public class OpenDealsPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(dealsTable);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getViewport().setBackground(Color.WHITE);
         add(scrollPane, BorderLayout.CENTER);
     }
 
@@ -109,7 +117,7 @@ public class OpenDealsPanel extends JPanel {
 
     // Button renderer for the Complete column
     private class ButtonRenderer extends JButton implements javax.swing.table.TableCellRenderer {
-        public ButtonRenderer() { setOpaque(true); }
+        public ButtonRenderer() { setOpaque(true); setBackground(new Color(200, 230, 255)); setForeground(Color.BLACK); }
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
                 boolean isSelected, boolean hasFocus, int row, int column) {
@@ -127,6 +135,8 @@ public class OpenDealsPanel extends JPanel {
             super(checkBox);
             button = new JButton();
             button.setOpaque(true);
+            button.setBackground(new Color(200, 230, 255));
+            button.setForeground(Color.BLACK);
             button.addActionListener(e -> fireEditingStopped());
         }
         @Override

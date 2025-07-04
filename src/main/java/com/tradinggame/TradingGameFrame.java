@@ -27,6 +27,7 @@ public class TradingGameFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1400, 900);
         setLocationRelativeTo(null);
+        getContentPane().setBackground(Color.WHITE); // Light theme
 
         initComponents();
         setupLayout();
@@ -54,11 +55,13 @@ public class TradingGameFrame extends JFrame {
         
         // Initialize buttons and labels
         nextDayButton = new JButton("Next Day");
+        nextDayButton.setFont(new Font("Arial", Font.BOLD, 14));
+        nextDayButton.setBackground(new Color(200, 230, 255));
+        nextDayButton.setForeground(Color.BLACK);
         currentDateLabel = new JLabel("Current Date: Not Started");
         gameStatusLabel = new JLabel("Game Status: Not Started");
         
         // Style components
-        nextDayButton.setFont(new Font("Arial", Font.BOLD, 14));
         currentDateLabel.setFont(new Font("Arial", Font.BOLD, 12));
         gameStatusLabel.setFont(new Font("Arial", Font.BOLD, 12));
     }
@@ -69,6 +72,7 @@ public class TradingGameFrame extends JFrame {
         // Top panel for game info
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        topPanel.setBackground(Color.WHITE);
         topPanel.add(new JLabel("Symbol:"));
         topPanel.add(symbolComboBox);
         topPanel.add(Box.createHorizontalStrut(20));
@@ -82,22 +86,26 @@ public class TradingGameFrame extends JFrame {
         // Center panel for charts
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.setBorder(BorderFactory.createTitledBorder("Technical Analysis Charts"));
+        centerPanel.setBackground(Color.WHITE);
         centerPanel.add(chartPanel, BorderLayout.CENTER);
 
         // Right panel for trading controls
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setPreferredSize(new Dimension(350, 0));
         rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        rightPanel.setBackground(Color.WHITE);
 
         // Balance panel at top
         JPanel balanceWrapper = new JPanel(new BorderLayout());
         balanceWrapper.setBorder(BorderFactory.createTitledBorder("Account Balance"));
+        balanceWrapper.setBackground(Color.WHITE);
         balanceWrapper.add(balancePanel, BorderLayout.CENTER);
         rightPanel.add(balanceWrapper, BorderLayout.NORTH);
 
         // Order panel in middle
         JPanel orderWrapper = new JPanel(new BorderLayout());
         orderWrapper.setBorder(BorderFactory.createTitledBorder("Place Order"));
+        orderWrapper.setBackground(Color.WHITE);
         orderWrapper.add(orderPanel, BorderLayout.CENTER);
         rightPanel.add(orderWrapper, BorderLayout.CENTER);
 
@@ -107,6 +115,7 @@ public class TradingGameFrame extends JFrame {
         ordersTabbedPane.addTab("Open Deals", openDealsPanel);
         JPanel ordersWrapper = new JPanel(new BorderLayout());
         ordersWrapper.setBorder(BorderFactory.createTitledBorder("Orders & Deals"));
+        ordersWrapper.setBackground(Color.WHITE);
         ordersWrapper.add(ordersTabbedPane, BorderLayout.CENTER);
         rightPanel.add(ordersWrapper, BorderLayout.SOUTH);
 
@@ -190,6 +199,7 @@ public class TradingGameFrame extends JFrame {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout(20, 20));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBackground(Color.WHITE);
 
         // Results text area
         JTextArea resultsArea = new JTextArea();
@@ -197,7 +207,8 @@ public class TradingGameFrame extends JFrame {
         resultsArea.setLineWrap(true);
         resultsArea.setWrapStyleWord(true);
         resultsArea.setFont(new Font("Arial", Font.BOLD, 14));
-        resultsArea.setBackground(new Color(248, 248, 248));
+        resultsArea.setBackground(new Color(240, 240, 240));
+        resultsArea.setForeground(Color.BLACK);
         resultsArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         String resultsText = String.format(
@@ -240,10 +251,12 @@ public class TradingGameFrame extends JFrame {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         JButton newGameButton = new JButton("New Game");
         newGameButton.setFont(new Font("Arial", Font.BOLD, 14));
-        newGameButton.setPreferredSize(new Dimension(120, 35));
+        newGameButton.setBackground(new Color(200, 230, 255));
+        newGameButton.setForeground(Color.BLACK);
         JButton exitButton = new JButton("Exit");
         exitButton.setFont(new Font("Arial", Font.BOLD, 14));
-        exitButton.setPreferredSize(new Dimension(120, 35));
+        exitButton.setBackground(new Color(200, 230, 255));
+        exitButton.setForeground(Color.BLACK);
         newGameButton.addActionListener(e -> {
             resultsDialog.dispose();
             restartGame();

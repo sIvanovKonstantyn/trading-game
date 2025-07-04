@@ -31,8 +31,7 @@ In the summary report we should see all the PnLs of each deal.
 
 - Add UI controls above the chart to select which technical indicators (Bollinger Bands, RSI, Volume) to display. Indicators should be shown or hidden based on user selection, following best practices from leading crypto exchange platforms.
 
-
-
+✅ TradingView white theme UI recoloring for all panels and charts
 
 COMPLETED FEATURES:
 ✅ RSI, Bollinger Bands, and Volume charts implemented

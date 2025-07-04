@@ -25,6 +25,7 @@ public class OrderPanel extends JPanel {
         this.gameState = gameState;
         setLayout(new GridBagLayout());
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        setBackground(Color.WHITE);
         
         initComponents();
         setupLayout();
@@ -73,10 +74,28 @@ public class OrderPanel extends JPanel {
         
         // Style components
         placeOrderButton.setFont(new Font("Arial", Font.BOLD, 12));
+        placeOrderButton.setBackground(new Color(200, 230, 255));
+        placeOrderButton.setForeground(Color.BLACK);
         
         // Dynamic crypto label
         cryptoAmountLabel = new JLabel();
         updateCryptoAmountLabel();
+        
+        orderTypeCombo.setBackground(Color.WHITE);
+        orderTypeCombo.setForeground(Color.BLACK);
+        priceField.setBackground(Color.WHITE);
+        priceField.setForeground(Color.BLACK);
+        amountField.setBackground(Color.WHITE);
+        amountField.setForeground(Color.BLACK);
+        usdcAmountField.setBackground(Color.WHITE);
+        usdcAmountField.setForeground(Color.BLACK);
+        orderDateCombo.setBackground(Color.WHITE);
+        orderDateCombo.setForeground(Color.BLACK);
+        btcAmountRadio.setBackground(Color.WHITE);
+        btcAmountRadio.setForeground(Color.BLACK);
+        usdcAmountRadio.setBackground(Color.WHITE);
+        usdcAmountRadio.setForeground(Color.BLACK);
+        cryptoAmountLabel.setForeground(Color.BLACK);
     }
 
     private void setupLayout() {

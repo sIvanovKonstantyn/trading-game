@@ -107,7 +107,7 @@ public class GameState {
             LocalDateTime timestamp = date.atTime(hour, 0);
             double price = basePrice + (Math.random() - 0.5) * 2000; // ±1000 variation
             double volume = 1000 + Math.random() * 5000; // Mock volume
-            PriceData priceData = new PriceData(timestamp, price, volume);
+            PriceData priceData = new PriceData(timestamp, price, price, price, price, volume);
             state.getAllPriceHistory().add(priceData);
             if (!date.isBefore(startDate)) {
                 state.getPriceHistory().add(priceData);
@@ -289,7 +289,7 @@ public class GameState {
                     LocalDateTime timestamp = date.atTime(hour, 0);
                     double price = basePrice + (Math.random() - 0.5) * 2000;
                     double volume = 1000 + Math.random() * 5000;
-                    PriceData priceData = new PriceData(timestamp, price, volume);
+                    PriceData priceData = new PriceData(timestamp, price, price, price, price, volume);
                     state.getAllPriceHistory().add(priceData);
                     if (!date.isBefore(startDate)) {
                         state.getPriceHistory().add(priceData);

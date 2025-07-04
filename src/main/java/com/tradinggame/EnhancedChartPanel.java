@@ -9,6 +9,8 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.*;
 import org.jfree.data.xy.XYDataset;
+import org.jfree.chart.renderer.xy.CandlestickRenderer;
+import org.jfree.data.xy.DefaultHighLowDataset;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,6 +24,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.text.NumberFormat;
 
 public class EnhancedChartPanel extends JPanel {
     private GameState gameState;
@@ -91,7 +94,7 @@ public class EnhancedChartPanel extends JPanel {
     private ChartPanel createMainChartPanel() {
         XYDataset priceDataset = createPriceDataset();
         JFreeChart mainChart = ChartFactory.createTimeSeriesChart(
-            "BTC/USDC Price Chart",
+            gameState.getCurrentSymbol() + " Price Chart",
             "Time",
             "Price (USDC)",
             priceDataset,
@@ -100,6 +103,13 @@ public class EnhancedChartPanel extends JPanel {
             false
         );
         XYPlot plot = (XYPlot) mainChart.getPlot();
+        plot.setBackgroundPaint(Color.WHITE); // Light theme background
+        plot.setDomainGridlinePaint(new Color(220, 220, 220));
+        plot.setRangeGridlinePaint(new Color(220, 220, 220));
+        plot.getDomainAxis().setLabelPaint(Color.BLACK);
+        plot.getRangeAxis().setLabelPaint(Color.BLACK);
+        plot.getDomainAxis().setTickLabelPaint(Color.BLACK);
+        plot.getRangeAxis().setTickLabelPaint(Color.BLACK);
         DateAxis axis = (DateAxis) plot.getDomainAxis();
         axis.setDateFormatOverride(new SimpleDateFormat("MM-dd HH:mm"));
         // Price line
@@ -128,6 +138,13 @@ public class EnhancedChartPanel extends JPanel {
             false
         );
         org.jfree.chart.plot.XYPlot plot = (org.jfree.chart.plot.XYPlot) rsiChart.getPlot();
+        plot.setBackgroundPaint(Color.WHITE);
+        plot.setDomainGridlinePaint(new Color(220, 220, 220));
+        plot.setRangeGridlinePaint(new Color(220, 220, 220));
+        plot.getDomainAxis().setLabelPaint(Color.BLACK);
+        plot.getRangeAxis().setLabelPaint(Color.BLACK);
+        plot.getDomainAxis().setTickLabelPaint(Color.BLACK);
+        plot.getRangeAxis().setTickLabelPaint(Color.BLACK);
         org.jfree.chart.axis.DateAxis axis = (org.jfree.chart.axis.DateAxis) plot.getDomainAxis();
         axis.setDateFormatOverride(new java.text.SimpleDateFormat("MM-dd HH:mm"));
         org.jfree.chart.renderer.xy.XYLineAndShapeRenderer rsiRenderer = new org.jfree.chart.renderer.xy.XYLineAndShapeRenderer();
@@ -227,6 +244,36 @@ public class EnhancedChartPanel extends JPanel {
         }
         
         return new TimeSeriesCollection(series);
+    }
+
+    private DefaultHighLowDataset createOHLCDataset() {
+        List<PriceData> priceHistory = getPriceHistory();
+        LocalDate currentDate = gameState.getCurrentDate();
+        int n = priceHistory == null ? 0 : priceHistory.size();
+        int validCount = 0;
+        for (PriceData pd : priceHistory) {
+            if (!pd.getTimestamp().toLocalDate().isAfter(currentDate)) validCount++;
+        }
+        Date[] dates = new Date[validCount];
+        double[] opens = new double[validCount];
+        double[] highs = new double[validCount];
+        double[] lows = new double[validCount];
+        double[] closes = new double[validCount];
+        double[] volumes = new double[validCount];
+        int idx = 0;
+        for (PriceData pd : priceHistory) {
+            if (!pd.getTimestamp().toLocalDate().isAfter(currentDate)) {
+                Date date = Date.from(pd.getTimestamp().atZone(ZoneId.systemDefault()).toInstant());
+                dates[idx] = date;
+                opens[idx] = pd.getOpen();
+                highs[idx] = pd.getHigh();
+                lows[idx] = pd.getLow();
+                closes[idx] = pd.getPrice();
+                volumes[idx] = pd.getVolume();
+                idx++;
+            }
+        }
+        return new DefaultHighLowDataset(gameState.getCurrentSymbol(), dates, highs, lows, opens, closes, volumes);
     }
 
     private void addBollingerBands(XYPlot plot) {

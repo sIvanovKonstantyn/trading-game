@@ -6,16 +6,25 @@ public class PriceData {
     private LocalDateTime timestamp;
     private double price;
     private double volume;
+    private double open;
+    private double high;
+    private double low;
 
-    public PriceData(LocalDateTime timestamp, double price, double volume) {
+    public PriceData(LocalDateTime timestamp, double open, double high, double low, double close, double volume) {
         this.timestamp = timestamp;
-        this.price = price;
+        this.open = open;
+        this.high = high;
+        this.low = low;
+        this.price = close;
         this.volume = volume;
     }
 
-    // Legacy constructor for compatibility
+    public PriceData(LocalDateTime timestamp, double price, double volume) {
+        this(timestamp, price, price, price, price, volume);
+    }
+
     public PriceData(LocalDateTime timestamp, double price) {
-        this(timestamp, price, 0);
+        this(timestamp, price, price, price, price, 0);
     }
 
     public LocalDateTime getTimestamp() {
@@ -30,8 +39,20 @@ public class PriceData {
         return volume;
     }
 
+    public double getOpen() {
+        return open;
+    }
+
+    public double getHigh() {
+        return high;
+    }
+
+    public double getLow() {
+        return low;
+    }
+
     @Override
     public String toString() {
-        return String.format("Price: $%.2f, Volume: %.2f at %s", price, volume, timestamp);
+        return String.format("O: %.2f H: %.2f L: %.2f C: %.2f, V: %.2f at %s", open, high, low, price, volume, timestamp);
     }
 } 

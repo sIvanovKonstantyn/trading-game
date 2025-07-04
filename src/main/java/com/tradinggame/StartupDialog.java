@@ -67,16 +67,22 @@ public class StartupDialog extends JDialog {
         feeField.setPreferredSize(minSize);
         
         // Style components
-        startButton.setFont(new Font("Arial", Font.BOLD, 12));
-        cancelButton.setFont(new Font("Arial", Font.BOLD, 12));
+        startButton.setFont(new Font("Arial", Font.BOLD, 14));
+        startButton.setBackground(new Color(200, 230, 255));
+        startButton.setForeground(Color.BLACK);
+        cancelButton.setFont(new Font("Arial", Font.BOLD, 14));
+        cancelButton.setBackground(new Color(200, 230, 255));
+        cancelButton.setForeground(Color.BLACK);
     }
 
     private void setupLayout() {
         setLayout(new BorderLayout());
+        getContentPane().setBackground(Color.WHITE);
         
         // Main panel
         JPanel mainPanel = new JPanel(new GridBagLayout());
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBackground(Color.WHITE);
         
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
@@ -85,31 +91,41 @@ public class StartupDialog extends JDialog {
         
         // Player Name
         gbc.gridx = 0; gbc.gridy = 0;
-        mainPanel.add(new JLabel("Player Name:"), gbc);
+        JLabel nameLabel = new JLabel("Player Name:");
+        nameLabel.setForeground(Color.BLACK);
+        mainPanel.add(nameLabel, gbc);
         gbc.gridx = 1;
         mainPanel.add(nameField, gbc);
         
         // Start Date
         gbc.gridx = 0; gbc.gridy = 1;
-        mainPanel.add(new JLabel("Start Date (YYYY-MM-DD):"), gbc);
+        JLabel startDateLabel = new JLabel("Start Date (YYYY-MM-DD):");
+        startDateLabel.setForeground(Color.BLACK);
+        mainPanel.add(startDateLabel, gbc);
         gbc.gridx = 1;
         mainPanel.add(startDateField, gbc);
         
         // End Date
         gbc.gridx = 0; gbc.gridy = 2;
-        mainPanel.add(new JLabel("End Date (YYYY-MM-DD):"), gbc);
+        JLabel endDateLabel = new JLabel("End Date (YYYY-MM-DD):");
+        endDateLabel.setForeground(Color.BLACK);
+        mainPanel.add(endDateLabel, gbc);
         gbc.gridx = 1;
         mainPanel.add(endDateField, gbc);
         
         // Initial Balance
         gbc.gridx = 0; gbc.gridy = 3;
-        mainPanel.add(new JLabel("Initial Balance (USDC):"), gbc);
+        JLabel balanceLabel = new JLabel("Initial Balance (USDC):");
+        balanceLabel.setForeground(Color.BLACK);
+        mainPanel.add(balanceLabel, gbc);
         gbc.gridx = 1;
         mainPanel.add(balanceField, gbc);
         
         // Trading Fee
         gbc.gridx = 0; gbc.gridy = 4;
-        mainPanel.add(new JLabel("Trading Fee (%):"), gbc);
+        JLabel feeLabel = new JLabel("Trading Fee (%):");
+        feeLabel.setForeground(Color.BLACK);
+        mainPanel.add(feeLabel, gbc);
         gbc.gridx = 1;
         mainPanel.add(feeField, gbc);
         
@@ -118,6 +134,7 @@ public class StartupDialog extends JDialog {
         // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        buttonPanel.setBackground(Color.WHITE);
         buttonPanel.add(startButton);
         buttonPanel.add(cancelButton);
         

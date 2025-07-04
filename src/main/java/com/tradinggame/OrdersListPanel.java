@@ -14,6 +14,7 @@ public class OrdersListPanel extends JPanel {
         this.gameState = gameState;
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(330, 200));
+        setBackground(Color.WHITE);
         
         initComponents();
         setupLayout();
@@ -45,7 +46,13 @@ public class OrdersListPanel extends JPanel {
         ordersTable = new JTable(tableModel);
         ordersTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         ordersTable.getTableHeader().setReorderingAllowed(false);
-        ordersTable.setRowHeight(30); // Increase row height for buttons
+        ordersTable.setRowHeight(28);
+        ordersTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        ordersTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        ordersTable.setBackground(Color.WHITE);
+        ordersTable.setForeground(Color.BLACK);
+        ordersTable.getTableHeader().setBackground(new Color(240, 240, 240));
+        ordersTable.getTableHeader().setForeground(Color.BLACK);
         
         // Set column widths
         ordersTable.getColumnModel().getColumn(0).setPreferredWidth(65); // Symbol
@@ -64,7 +71,7 @@ public class OrdersListPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(ordersTable);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        
+        scrollPane.getViewport().setBackground(Color.WHITE);
         add(scrollPane, BorderLayout.CENTER);
     }
 
@@ -95,6 +102,8 @@ public class OrdersListPanel extends JPanel {
     private class ButtonRenderer extends JButton implements javax.swing.table.TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);
+            setBackground(new Color(200, 230, 255));
+            setForeground(Color.BLACK);
         }
         
         @Override
@@ -115,6 +124,8 @@ public class OrdersListPanel extends JPanel {
             super(checkBox);
             button = new JButton();
             button.setOpaque(true);
+            button.setBackground(new Color(200, 230, 255));
+            button.setForeground(Color.BLACK);
             button.addActionListener(e -> fireEditingStopped());
         }
         

@@ -17,6 +17,7 @@ public class BalancePanel extends JPanel {
         this.gameState = gameState;
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        setBackground(Color.WHITE);
         initComponents();
         setupLayout();
         // Add listener for game state changes
@@ -43,13 +44,19 @@ public class BalancePanel extends JPanel {
         balancesTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
         balancesTable.setFillsViewportHeight(true);
         balancesTable.setPreferredScrollableViewportSize(new Dimension(340, 120));
+        balancesTable.setBackground(Color.WHITE);
+        balancesTable.setForeground(Color.BLACK);
+        balancesTable.getTableHeader().setBackground(new Color(240, 240, 240));
+        balancesTable.getTableHeader().setForeground(Color.BLACK);
         // Info panel for total and fee
         infoPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        infoPanel.setBackground(Color.WHITE);
         totalValueLabel = new JLabel("Total Value: $0.00");
         totalValueLabel.setFont(new Font("Arial", Font.BOLD, 15));
-        totalValueLabel.setForeground(new Color(0, 100, 0));
+        totalValueLabel.setForeground(Color.BLACK);
         tradingFeeLabel = new JLabel("Trading Fee: 0.00%");
         tradingFeeLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        tradingFeeLabel.setForeground(Color.BLACK);
         infoPanel.add(totalValueLabel);
         infoPanel.add(tradingFeeLabel);
     }
