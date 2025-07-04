@@ -141,9 +141,16 @@ public class EnhancedChartPanel extends JPanel {
         return panel;
     }
 
+    private List<PriceData> getPriceHistory() {
+        return gameState.getCurrentSymbolState().getPriceHistory();
+    }
+    private List<PriceData> getAllPriceHistory() {
+        return gameState.getCurrentSymbolState().getAllPriceHistory();
+    }
+
     private XYDataset createPriceDataset() {
-        TimeSeries series = new TimeSeries("BTC Price");
-        List<PriceData> priceHistory = gameState.getPriceHistory();
+        TimeSeries series = new TimeSeries(gameState.getCurrentSymbol() + " Price");
+        List<PriceData> priceHistory = getPriceHistory();
         LocalDate currentDate = gameState.getCurrentDate();
         
         if (priceHistory != null) {
@@ -166,7 +173,7 @@ public class EnhancedChartPanel extends JPanel {
 
     private XYDataset createRSIDataset() {
         TimeSeries series = new TimeSeries("RSI");
-        List<PriceData> allPrices = gameState.getAllPriceHistory();
+        List<PriceData> allPrices = getAllPriceHistory();
         LocalDate currentDate = gameState.getCurrentDate();
         
         if (allPrices == null || allPrices.isEmpty()) {
@@ -200,7 +207,7 @@ public class EnhancedChartPanel extends JPanel {
 
     private XYDataset createVolumeDataset() {
         TimeSeries series = new TimeSeries("Volume");
-        List<PriceData> priceHistory = gameState.getPriceHistory();
+        List<PriceData> priceHistory = getPriceHistory();
         LocalDate currentDate = gameState.getCurrentDate();
         
         if (priceHistory != null) {
@@ -223,7 +230,7 @@ public class EnhancedChartPanel extends JPanel {
     }
 
     private void addBollingerBands(XYPlot plot) {
-        List<PriceData> allPrices = gameState.getAllPriceHistory();
+        List<PriceData> allPrices = getAllPriceHistory();
         LocalDate currentDate = gameState.getCurrentDate();
         
         if (allPrices == null || allPrices.isEmpty() || allPrices.size() < 20) {
@@ -294,7 +301,7 @@ public class EnhancedChartPanel extends JPanel {
         TimeSeries overboughtSeries = new TimeSeries("Overbought (70)");
         TimeSeries oversoldSeries = new TimeSeries("Oversold (30)");
         
-        List<PriceData> priceHistory = gameState.getPriceHistory();
+        List<PriceData> priceHistory = getPriceHistory();
         if (priceHistory != null) {
             for (PriceData priceData : priceHistory) {
                 try {
@@ -356,5 +363,9 @@ public class EnhancedChartPanel extends JPanel {
         add(chartsPanel, BorderLayout.CENTER);
         revalidate();
         repaint();
+    }
+
+    public void updateForSymbol() {
+        updateCharts();
     }
 } 

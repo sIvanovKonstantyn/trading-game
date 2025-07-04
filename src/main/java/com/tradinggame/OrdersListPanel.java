@@ -29,16 +29,16 @@ public class OrdersListPanel extends JPanel {
 
     private void initComponents() {
         // Create table model with Cancel button column
-        String[] columnNames = {"Type", "Price", "Amount", "Date", "Cancel"};
+        String[] columnNames = {"Symbol", "Type", "Price", "Amount", "Date", "Cancel"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 4; // Only Cancel button column is editable
+                return column == 5; // Only Cancel button column is editable
             }
             
             @Override
             public Class<?> getColumnClass(int column) {
-                return column == 4 ? JButton.class : String.class;
+                return column == 5 ? JButton.class : String.class;
             }
         };
         
@@ -48,15 +48,16 @@ public class OrdersListPanel extends JPanel {
         ordersTable.setRowHeight(30); // Increase row height for buttons
         
         // Set column widths
-        ordersTable.getColumnModel().getColumn(0).setPreferredWidth(55);
-        ordersTable.getColumnModel().getColumn(1).setPreferredWidth(85);
+        ordersTable.getColumnModel().getColumn(0).setPreferredWidth(65); // Symbol
+        ordersTable.getColumnModel().getColumn(1).setPreferredWidth(55);
         ordersTable.getColumnModel().getColumn(2).setPreferredWidth(85);
-        ordersTable.getColumnModel().getColumn(3).setPreferredWidth(75);
-        ordersTable.getColumnModel().getColumn(4).setPreferredWidth(30);
+        ordersTable.getColumnModel().getColumn(3).setPreferredWidth(85);
+        ordersTable.getColumnModel().getColumn(4).setPreferredWidth(75);
+        ordersTable.getColumnModel().getColumn(5).setPreferredWidth(30);
         
         // Set up button renderer and editor
-        ordersTable.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer());
-        ordersTable.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor(new JCheckBox()));
+        ordersTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer());
+        ordersTable.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor(new JCheckBox()));
     }
 
     private void setupLayout() {
@@ -73,10 +74,12 @@ public class OrdersListPanel extends JPanel {
             tableModel.setRowCount(0);
             
             // Add open orders
-            List<Order> openOrders = gameState.getOpenOrders();
+            List<Order> openOrders = getSymbolState().getOpenOrders();
+            String symbol = getSymbolState().getSymbol();
             for (int i = 0; i < openOrders.size(); i++) {
                 Order order = openOrders.get(i);
                 Object[] row = {
+                    symbol,
                     order.getType().toString(),
                     String.format("$%.2f", order.getPrice()),
                     String.format("%.4f", order.getAmount()),
@@ -129,8 +132,8 @@ public class OrdersListPanel extends JPanel {
             if (isPushed) {
                 // Cancel the order at the selected row
                 int row = ordersTable.getSelectedRow();
-                if (row >= 0 && row < gameState.getOpenOrders().size()) {
-                    List<Order> openOrders = gameState.getOpenOrders();
+                if (row >= 0 && row < getSymbolState().getOpenOrders().size()) {
+                    List<Order> openOrders = getSymbolState().getOpenOrders();
                     Order orderToCancel = openOrders.get(row);
                     gameState.cancelOrder(orderToCancel);
                 }
@@ -144,5 +147,22 @@ public class OrdersListPanel extends JPanel {
             isPushed = false;
             return super.stopCellEditing();
         }
+    }
+
+    public void updateForSymbol() {
+        repaint();
+        revalidate();
+    }
+
+    private SymbolState getSymbolState() {
+        return gameState.getCurrentSymbolState();
+    }
+
+    private String getCryptoSymbol() {
+        String symbol = getSymbolState().getSymbol();
+        if (symbol.endsWith("USDC")) {
+            return symbol.replace("USDC", "");
+        }
+        return symbol;
     }
 } 

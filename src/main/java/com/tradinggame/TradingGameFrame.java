@@ -20,6 +20,7 @@ public class TradingGameFrame extends JFrame {
     private JLabel currentDateLabel;
     private JLabel gameStatusLabel;
     private boolean gameResultsShown = false;
+    private JComboBox<String> symbolComboBox;
 
     public TradingGameFrame() {
         setTitle("Crypto Trading Simulator");
@@ -34,6 +35,15 @@ public class TradingGameFrame extends JFrame {
 
     private void initComponents() {
         gameState = new GameState();
+        
+        // Initialize symbol selection
+        symbolComboBox = new JComboBox<>(new String[]{"BTCUSDC", "ETHUSDC", "BNBUSDC"});
+        symbolComboBox.setSelectedItem(gameState.getCurrentSymbol());
+        symbolComboBox.addActionListener(e -> {
+            String selected = (String) symbolComboBox.getSelectedItem();
+            gameState.setCurrentSymbol(selected);
+            updatePanelsForSymbol();
+        });
         
         // Initialize panels
         chartPanel = new EnhancedChartPanel(gameState);
@@ -59,6 +69,9 @@ public class TradingGameFrame extends JFrame {
         // Top panel for game info
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        topPanel.add(new JLabel("Symbol:"));
+        topPanel.add(symbolComboBox);
+        topPanel.add(Box.createHorizontalStrut(20));
         topPanel.add(currentDateLabel);
         topPanel.add(Box.createHorizontalStrut(20));
         topPanel.add(gameStatusLabel);
@@ -70,7 +83,6 @@ public class TradingGameFrame extends JFrame {
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.setBorder(BorderFactory.createTitledBorder("Technical Analysis Charts"));
         centerPanel.add(chartPanel, BorderLayout.CENTER);
-        add(centerPanel, BorderLayout.CENTER);
 
         // Right panel for trading controls
         JPanel rightPanel = new JPanel(new BorderLayout());
@@ -98,7 +110,12 @@ public class TradingGameFrame extends JFrame {
         ordersWrapper.add(ordersTabbedPane, BorderLayout.CENTER);
         rightPanel.add(ordersWrapper, BorderLayout.SOUTH);
 
-        add(rightPanel, BorderLayout.EAST);
+        // Add a JSplitPane between centerPanel and rightPanel
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, centerPanel, rightPanel);
+        splitPane.setResizeWeight(0.7); // 70% charts, 30% right panel by default
+        splitPane.setDividerLocation(0.7);
+        splitPane.setOneTouchExpandable(true);
+        add(splitPane, BorderLayout.CENTER);
     }
 
     private void setupEventHandlers() {
@@ -146,7 +163,15 @@ public class TradingGameFrame extends JFrame {
 
     private void showGameResults() {
         double initialBalance = gameState.getInitialBalance();
-        double finalBalance = gameState.getCurrentBalance() + gameState.getBtcBalance() * gameState.getCurrentBtcPrice();
+        double finalBalance = gameState.getUsdcBalance();
+        for (Map.Entry<String, Double> entry : gameState.getAllCryptoBalances().entrySet()) {
+            String crypto = entry.getKey();
+            double amount = entry.getValue();
+            String symbol = crypto + "USDC";
+            SymbolState state = gameState.getSymbolStates().get(symbol);
+            double price = (state != null) ? state.getCurrentBtcPrice() : 0.0;
+            finalBalance += amount * price;
+        }
         double pnl = finalBalance - initialBalance;
         double pnlPercentage = (pnl / initialBalance) * 100;
         String playerName = gameState.getPlayerName();
@@ -179,7 +204,7 @@ public class TradingGameFrame extends JFrame {
             "🎉 Game Finished! 🎉\n\n" +
             "Player: %s\n" +
             "Initial Balance: $%.2f USDC\n" +
-            "Final Balance: $%.2f (USDC + BTC*Price)\n" +
+            "Final Balance: $%.2f\n" +
             "PnL: $%.2f USDC (%.2f%%)\n\n" +
             "Thank you for playing the Crypto Trading Simulator!",
             playerName, initialBalance, finalBalance, pnl, pnlPercentage
@@ -322,5 +347,13 @@ public class TradingGameFrame extends JFrame {
         // Start the game (this will load all the initial data)
         gameState.startGame(playerName, startDate, endDate, initialBalance, tradingFee);
         updateUI();
+    }
+
+    private void updatePanelsForSymbol() {
+        chartPanel.updateForSymbol();
+        orderPanel.updateForSymbol();
+        balancePanel.updateForSymbol();
+        ordersListPanel.updateForSymbol();
+        openDealsPanel.updateForSymbol();
     }
 } 

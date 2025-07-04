@@ -19,6 +19,7 @@ public class OrderPanel extends JPanel {
     private JRadioButton btcAmountRadio;
     private JRadioButton usdcAmountRadio;
     private ButtonGroup amountTypeGroup;
+    private JLabel cryptoAmountLabel;
 
     public OrderPanel(GameState gameState) {
         this.gameState = gameState;
@@ -47,12 +48,12 @@ public class OrderPanel extends JPanel {
         placeOrderButton = new JButton("Place Order");
         
         // Radio buttons for amount type
-        btcAmountRadio = new JRadioButton("BTC Amount");
+        btcAmountRadio = new JRadioButton("Crypto Amount");
         usdcAmountRadio = new JRadioButton("USDC Amount");
         amountTypeGroup = new ButtonGroup();
         amountTypeGroup.add(btcAmountRadio);
         amountTypeGroup.add(usdcAmountRadio);
-        btcAmountRadio.setSelected(true); // Default to BTC
+        btcAmountRadio.setSelected(true); // Default to crypto
         
         // Set default values
         priceField.setText("50000");
@@ -72,6 +73,10 @@ public class OrderPanel extends JPanel {
         
         // Style components
         placeOrderButton.setFont(new Font("Arial", Font.BOLD, 12));
+        
+        // Dynamic crypto label
+        cryptoAmountLabel = new JLabel();
+        updateCryptoAmountLabel();
     }
 
     private void setupLayout() {
@@ -100,9 +105,9 @@ public class OrderPanel extends JPanel {
         amountTypePanel.add(usdcAmountRadio);
         add(amountTypePanel, gbc);
         
-        // BTC Amount
+        // Crypto Amount (dynamic label)
         gbc.gridx = 0; gbc.gridy = 3;
-        add(new JLabel("Amount (BTC):"), gbc);
+        add(cryptoAmountLabel, gbc);
         gbc.gridx = 1;
         add(amountField, gbc);
         
@@ -244,23 +249,28 @@ public class OrderPanel extends JPanel {
             // Check balance for buy orders
             if (type == OrderType.BUY) {
                 double cost = price * amount;
-                if (cost > gameState.getCurrentBalance()) {
+                if (cost > gameState.getUsdcBalance()) {
                     JOptionPane.showMessageDialog(this, 
                         "Insufficient USDC balance. Cost: $" + String.format("%.2f", cost) + 
-                        ", Balance: $" + String.format("%.2f", gameState.getCurrentBalance()), 
+                        ", Balance: $" + String.format("%.2f", gameState.getUsdcBalance()), 
                         "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
             } else {
-                // Check BTC balance for sell orders
-                if (amount > gameState.getBtcBalance()) {
+                // Check crypto balance for sell orders
+                String crypto = getCryptoSymbol();
+                if (amount > gameState.getCryptoBalance(crypto)) {
                     JOptionPane.showMessageDialog(this, 
-                        "Insufficient BTC balance. Required: " + String.format("%.4f", amount) + 
-                        " BTC, Available: " + String.format("%.4f", gameState.getBtcBalance()) + " BTC", 
+                        "Insufficient " + crypto + " balance. Required: " + String.format("%.4f", amount) + 
+                        " " + crypto + ", Available: " + String.format("%.4f", gameState.getCryptoBalance(crypto)) + " " + crypto, 
                         "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
             }
+            
+            // Place order for the current symbol
+            SymbolState state = getSymbolState();
+            // Use state.getOpenOrders() etc. as needed
             
             gameState.placeOrder(type, price, amount, orderDate);
             
@@ -288,5 +298,28 @@ public class OrderPanel extends JPanel {
                 date = date.plusDays(1);
             }
         }
+    }
+
+    private SymbolState getSymbolState() {
+        return gameState.getCurrentSymbolState();
+    }
+
+    public void updateForSymbol() {
+        updateCryptoAmountLabel();
+        repaint();
+        revalidate();
+    }
+
+    private String getCryptoSymbol() {
+        String symbol = getSymbolState().getSymbol();
+        if (symbol.endsWith("USDC")) {
+            return symbol.replace("USDC", "");
+        }
+        return symbol;
+    }
+
+    private void updateCryptoAmountLabel() {
+        String crypto = getCryptoSymbol();
+        cryptoAmountLabel.setText("Amount (" + crypto + "):");
     }
 } 

@@ -2,22 +2,23 @@ package com.tradinggame;
 
 import javax.swing.*;
 import java.awt.*;
+import javax.swing.table.DefaultTableModel;
+import java.util.Map;
 
 public class BalancePanel extends JPanel {
     private GameState gameState;
-    private JLabel usdcBalanceLabel;
-    private JLabel btcBalanceLabel;
+    private JTable balancesTable;
+    private DefaultTableModel tableModel;
     private JLabel totalValueLabel;
     private JLabel tradingFeeLabel;
+    private JPanel infoPanel;
 
     public BalancePanel(GameState gameState) {
         this.gameState = gameState;
-        setLayout(new GridBagLayout());
+        setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
         initComponents();
         setupLayout();
-        
         // Add listener for game state changes
         gameState.addGameStateListener(new GameStateListener() {
             @Override
@@ -28,51 +29,71 @@ public class BalancePanel extends JPanel {
     }
 
     private void initComponents() {
-        usdcBalanceLabel = new JLabel("USDC: $0.00");
-        btcBalanceLabel = new JLabel("BTC: 0.0000");
+        // Table for balances
+        String[] columnNames = {"Symbol", "Crypto Balance", "USDC Balance", "Value (USDC)"};
+        tableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        balancesTable = new JTable(tableModel);
+        balancesTable.setRowHeight(28);
+        balancesTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        balancesTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        balancesTable.setFillsViewportHeight(true);
+        balancesTable.setPreferredScrollableViewportSize(new Dimension(340, 120));
+        // Info panel for total and fee
+        infoPanel = new JPanel(new GridLayout(2, 1, 5, 5));
         totalValueLabel = new JLabel("Total Value: $0.00");
+        totalValueLabel.setFont(new Font("Arial", Font.BOLD, 15));
+        totalValueLabel.setForeground(new Color(0, 100, 0));
         tradingFeeLabel = new JLabel("Trading Fee: 0.00%");
-        
-        // Style labels
-        Font boldFont = new Font("Arial", Font.BOLD, 14);
-        usdcBalanceLabel.setFont(boldFont);
-        btcBalanceLabel.setFont(boldFont);
-        totalValueLabel.setFont(boldFont);
-        tradingFeeLabel.setFont(boldFont);
-        
-        totalValueLabel.setForeground(new Color(0, 100, 0)); // Dark green
+        tradingFeeLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        infoPanel.add(totalValueLabel);
+        infoPanel.add(tradingFeeLabel);
     }
 
     private void setupLayout() {
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
-        
-        gbc.gridx = 0; gbc.gridy = 0;
-        add(usdcBalanceLabel, gbc);
-        
-        gbc.gridy = 1;
-        add(btcBalanceLabel, gbc);
-        
-        gbc.gridy = 2;
-        add(totalValueLabel, gbc);
-        
-        gbc.gridy = 3;
-        add(tradingFeeLabel, gbc);
+        removeAll();
+        add(new JScrollPane(balancesTable), BorderLayout.CENTER);
+        add(infoPanel, BorderLayout.SOUTH);
     }
 
     private void updateBalance() {
         SwingUtilities.invokeLater(() -> {
-            double usdcBalance = gameState.getCurrentBalance();
-            double btcBalance = gameState.getBtcBalance();
-            double currentBtcPrice = gameState.getCurrentBtcPrice();
-            double totalValue = usdcBalance + (btcBalance * currentBtcPrice);
-            double tradingFee = gameState.getTradingFee();
-            
-            usdcBalanceLabel.setText(String.format("USDC: $%.2f", usdcBalance));
-            btcBalanceLabel.setText(String.format("BTC: %.4f", btcBalance));
+            tableModel.setRowCount(0);
+            double totalValue = 0.0;
+            // USDC row
+            double usdc = gameState.getUsdcBalance();
+            if (usdc != 0.0) {
+                totalValue += usdc;
+                tableModel.addRow(new Object[]{"USDC", "", String.format("%.2f", usdc), String.format("$%.2f", usdc)});
+            }
+            // Crypto rows
+            for (Map.Entry<String, Double> entry : gameState.getAllCryptoBalances().entrySet()) {
+                String crypto = entry.getKey();
+                double amount = entry.getValue();
+                if (amount != 0.0) {
+                    String symbol = crypto + "USDC";
+                    SymbolState state = gameState.getSymbolStates().get(symbol);
+                    double price = (state != null) ? state.getCurrentBtcPrice() : 0.0;
+                    double value = amount * price;
+                    totalValue += value;
+                    tableModel.addRow(new Object[]{crypto, String.format("%.4f", amount), "", String.format("$%.2f", value)});
+                }
+            }
             totalValueLabel.setText(String.format("Total Value: $%.2f", totalValue));
-            tradingFeeLabel.setText(String.format("Trading Fee: %.2f%%", tradingFee * 100));
+            tradingFeeLabel.setText(String.format("Trading Fee: %.2f%%", gameState.getCurrentSymbolState().getTradingFee() * 100));
         });
+    }
+
+    private SymbolState getSymbolState() {
+        return gameState.getCurrentSymbolState();
+    }
+
+    public void updateForSymbol() {
+        repaint();
+        revalidate();
     }
 } 
