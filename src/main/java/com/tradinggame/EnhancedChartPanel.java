@@ -35,6 +35,9 @@ public class EnhancedChartPanel extends JPanel {
     private boolean showBollinger = true;
     private boolean showRSI = true;
     private boolean showVolume = true;
+    private boolean showVWAP = false;
+    private boolean showATR = false;
+    private boolean showIchimoku = false;
     private ChartPanel rsiChartPanel;
 
     public EnhancedChartPanel(GameState gameState) {
@@ -60,12 +63,15 @@ public class EnhancedChartPanel extends JPanel {
         addIndicatorCheckbox("Bollinger Bands", true);
         addIndicatorCheckbox("RSI", true);
         addIndicatorCheckbox("Volume", true);
+        addIndicatorCheckbox("VWAP", false);
+        addIndicatorCheckbox("ATR", false);
+        addIndicatorCheckbox("Ichimoku Cloud", false);
         add(indicatorPanel, BorderLayout.NORTH);
 
         // Main chart panel
         chartPanel = createMainChartPanel();
-        // RSI chart panel (may be null)
-        rsiChartPanel = showRSI ? createRSIChartPanel() : null;
+        // RSI/ATR chart panel (may be null)
+        rsiChartPanel = (showRSI || showATR) ? createIndicatorChartPanel() : null;
 
         JPanel chartsPanel = new JPanel();
         chartsPanel.setLayout(new BoxLayout(chartsPanel, BoxLayout.Y_AXIS));
@@ -85,6 +91,9 @@ public class EnhancedChartPanel extends JPanel {
                     case "Bollinger Bands": showBollinger = checkBox.isSelected(); break;
                     case "RSI": showRSI = checkBox.isSelected(); break;
                     case "Volume": showVolume = checkBox.isSelected(); break;
+                    case "VWAP": showVWAP = checkBox.isSelected(); break;
+                    case "ATR": showATR = checkBox.isSelected(); break;
+                    case "Ichimoku Cloud": showIchimoku = checkBox.isSelected(); break;
                 }
                 updateCharts();
             }
@@ -119,25 +128,66 @@ public class EnhancedChartPanel extends JPanel {
         priceRenderer.setSeriesShapesVisible(0, false);
         plot.setRenderer(0, priceRenderer);
         // Add indicators
-        if (showBollinger) addBollingerBands(plot);
+        int datasetIndex = 1;
+        if (showBollinger) { addBollingerBands(plot); datasetIndex++; }
+        if (showVWAP) { addVWAP(plot, datasetIndex++); }
+        if (showIchimoku) { addIchimokuCloud(plot, datasetIndex++); }
         if (showVolume) addVolume(plot);
         ChartPanel panel = new ChartPanel(mainChart);
         panel.setPreferredSize(new Dimension(800, 400));
         return panel;
     }
 
-    private ChartPanel createRSIChartPanel() {
-        XYDataset rsiDataset = createRSIDataset();
-        JFreeChart rsiChart = org.jfree.chart.ChartFactory.createTimeSeriesChart(
-            "RSI (Relative Strength Index)",
+    private ChartPanel createIndicatorChartPanel() {
+        TimeSeriesCollection dataset = new TimeSeriesCollection();
+        if (showRSI) {
+            TimeSeries rsiSeries = new TimeSeries("RSI");
+            List<PriceData> allPrices = getAllPriceHistory();
+            LocalDate currentDate = gameState.getCurrentDate();
+            if (allPrices != null && !allPrices.isEmpty()) {
+                for (int i = 0; i < allPrices.size(); i++) {
+                    if (allPrices.get(i).getTimestamp().toLocalDate().isAfter(currentDate)) break;
+                    int startIndex = Math.max(0, i - 14);
+                    List<PriceData> subList = allPrices.subList(startIndex, i + 1);
+                    TechnicalIndicators.RSIResult rsi = TechnicalIndicators.calculateRSI(subList, 14);
+                    if (rsi.isValid) {
+                        LocalDateTime ldt = allPrices.get(i).getTimestamp();
+                        Date date = Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+                        rsiSeries.addOrUpdate(new Millisecond(date), rsi.rsi);
+                    }
+                }
+            }
+            dataset.addSeries(rsiSeries);
+        }
+        if (showATR) {
+            TimeSeries atrSeries = new TimeSeries("ATR %");
+            List<PriceData> allPrices = getAllPriceHistory();
+            LocalDate currentDate = gameState.getCurrentDate();
+            if (allPrices != null && !allPrices.isEmpty()) {
+                for (int i = 0; i < allPrices.size(); i++) {
+                    if (allPrices.get(i).getTimestamp().toLocalDate().isAfter(currentDate)) break;
+                    int startIndex = Math.max(0, i - 14);
+                    List<PriceData> subList = allPrices.subList(startIndex, i + 1);
+                    double atrPercent = TechnicalIndicators.calculateATRPercent(subList, 14);
+                    if (subList.size() >= 15) {
+                        LocalDateTime ldt = allPrices.get(i).getTimestamp();
+                        Date date = Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+                        atrSeries.addOrUpdate(new Millisecond(date), atrPercent);
+                    }
+                }
+            }
+            dataset.addSeries(atrSeries);
+        }
+        JFreeChart indicatorChart = org.jfree.chart.ChartFactory.createTimeSeriesChart(
+            (showRSI && showATR) ? "RSI & ATR %" : (showRSI ? "RSI" : "ATR %"),
             "Time",
-            "RSI",
-            rsiDataset,
+            (showRSI && showATR) ? "Value" : (showRSI ? "RSI" : "ATR %"),
+            dataset,
             true,
             true,
             false
         );
-        org.jfree.chart.plot.XYPlot plot = (org.jfree.chart.plot.XYPlot) rsiChart.getPlot();
+        org.jfree.chart.plot.XYPlot plot = (org.jfree.chart.plot.XYPlot) indicatorChart.getPlot();
         plot.setBackgroundPaint(Color.WHITE);
         plot.setDomainGridlinePaint(new Color(220, 220, 220));
         plot.setRangeGridlinePaint(new Color(220, 220, 220));
@@ -147,13 +197,21 @@ public class EnhancedChartPanel extends JPanel {
         plot.getRangeAxis().setTickLabelPaint(Color.BLACK);
         org.jfree.chart.axis.DateAxis axis = (org.jfree.chart.axis.DateAxis) plot.getDomainAxis();
         axis.setDateFormatOverride(new java.text.SimpleDateFormat("MM-dd HH:mm"));
-        org.jfree.chart.renderer.xy.XYLineAndShapeRenderer rsiRenderer = new org.jfree.chart.renderer.xy.XYLineAndShapeRenderer();
-        rsiRenderer.setSeriesPaint(0, new java.awt.Color(0, 150, 0));
-        rsiRenderer.setSeriesStroke(0, new java.awt.BasicStroke(2.0f));
-        rsiRenderer.setSeriesShapesVisible(0, false);
-        plot.setRenderer(0, rsiRenderer);
-        addRSILines(plot);
-        ChartPanel panel = new ChartPanel(rsiChart);
+        org.jfree.chart.renderer.xy.XYLineAndShapeRenderer renderer = new org.jfree.chart.renderer.xy.XYLineAndShapeRenderer();
+        int seriesIdx = 0;
+        if (showRSI) {
+            renderer.setSeriesPaint(seriesIdx, new java.awt.Color(0, 150, 0));
+            renderer.setSeriesStroke(seriesIdx, new java.awt.BasicStroke(2.0f));
+            renderer.setSeriesShapesVisible(seriesIdx, false);
+            seriesIdx++;
+        }
+        if (showATR) {
+            renderer.setSeriesPaint(seriesIdx, new java.awt.Color(128, 0, 255)); // Purple
+            renderer.setSeriesStroke(seriesIdx, new java.awt.BasicStroke(2.0f));
+            renderer.setSeriesShapesVisible(seriesIdx, false);
+        }
+        plot.setRenderer(renderer);
+        ChartPanel panel = new ChartPanel(indicatorChart);
         panel.setPreferredSize(new java.awt.Dimension(800, 150));
         return panel;
     }
@@ -398,11 +456,97 @@ public class EnhancedChartPanel extends JPanel {
         plot.setRenderer(volumeIndex, volumeRenderer);
     }
 
+    private void addVWAP(XYPlot plot, int datasetIndex) {
+        List<PriceData> priceHistory = getPriceHistory();
+        LocalDate currentDate = gameState.getCurrentDate();
+        TimeSeries vwapSeries = new TimeSeries("VWAP");
+        double cumulativePV = 0;
+        double cumulativeVolume = 0;
+        for (PriceData pd : priceHistory) {
+            if (!pd.getTimestamp().toLocalDate().isAfter(currentDate)) {
+                cumulativePV += pd.getPrice() * pd.getVolume();
+                cumulativeVolume += pd.getVolume();
+                if (cumulativeVolume > 0) {
+                    Date date = Date.from(pd.getTimestamp().atZone(ZoneId.systemDefault()).toInstant());
+                    vwapSeries.addOrUpdate(new Millisecond(date), cumulativePV / cumulativeVolume);
+                }
+            }
+        }
+        TimeSeriesCollection vwapDataset = new TimeSeriesCollection();
+        vwapDataset.addSeries(vwapSeries);
+        plot.setDataset(datasetIndex, vwapDataset);
+        XYLineAndShapeRenderer vwapRenderer = new XYLineAndShapeRenderer();
+        vwapRenderer.setSeriesPaint(0, new Color(255, 140, 0)); // Orange
+        vwapRenderer.setSeriesStroke(0, new BasicStroke(2.5f));
+        vwapRenderer.setSeriesShapesVisible(0, false);
+        plot.setRenderer(datasetIndex, vwapRenderer);
+    }
+
+    private void addIchimokuCloud(XYPlot plot, int datasetIndex) {
+        List<PriceData> priceHistory = getPriceHistory();
+        LocalDate currentDate = gameState.getCurrentDate();
+        int n = priceHistory.size();
+        TechnicalIndicators.IchimokuCloud ichimoku = TechnicalIndicators.calculateIchimokuCloud(priceHistory);
+        TimeSeries tenkan = new TimeSeries("Tenkan-sen");
+        TimeSeries kijun = new TimeSeries("Kijun-sen");
+        TimeSeries senkouA = new TimeSeries("Senkou Span A");
+        TimeSeries senkouB = new TimeSeries("Senkou Span B");
+        TimeSeries chikou = new TimeSeries("Chikou Span");
+        for (int i = 0; i < n; i++) {
+            PriceData pd = priceHistory.get(i);
+            if (!pd.getTimestamp().toLocalDate().isAfter(currentDate)) {
+                Date date = Date.from(pd.getTimestamp().atZone(ZoneId.systemDefault()).toInstant());
+                if (!Double.isNaN(ichimoku.tenkan[i])) tenkan.addOrUpdate(new Millisecond(date), ichimoku.tenkan[i]);
+                if (!Double.isNaN(ichimoku.kijun[i])) kijun.addOrUpdate(new Millisecond(date), ichimoku.kijun[i]);
+                if (!Double.isNaN(ichimoku.chikou[i])) chikou.addOrUpdate(new Millisecond(date), ichimoku.chikou[i]);
+            }
+            // Senkou A/B are plotted 26 periods ahead
+            if (i >= 26 && i < n) {
+                PriceData futurePd = priceHistory.get(i);
+                Date futureDate = Date.from(futurePd.getTimestamp().atZone(ZoneId.systemDefault()).toInstant());
+                if (!Double.isNaN(ichimoku.senkouA[i])) senkouA.addOrUpdate(new Millisecond(futureDate), ichimoku.senkouA[i]);
+                if (!Double.isNaN(ichimoku.senkouB[i])) senkouB.addOrUpdate(new Millisecond(futureDate), ichimoku.senkouB[i]);
+            }
+        }
+        TimeSeriesCollection ichimokuDataset = new TimeSeriesCollection();
+        ichimokuDataset.addSeries(tenkan);
+        ichimokuDataset.addSeries(kijun);
+        ichimokuDataset.addSeries(senkouA);
+        ichimokuDataset.addSeries(senkouB);
+        ichimokuDataset.addSeries(chikou);
+        plot.setDataset(datasetIndex, ichimokuDataset);
+        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        renderer.setSeriesPaint(0, Color.RED); // Tenkan-sen
+        renderer.setSeriesStroke(0, new BasicStroke(1.5f));
+        renderer.setSeriesPaint(1, new Color(255, 140, 0)); // Kijun-sen (dark orange)
+        renderer.setSeriesStroke(1, new BasicStroke(1.5f));
+        renderer.setSeriesPaint(2, new Color(0, 200, 0, 120)); // Senkou A (green, semi-transparent)
+        renderer.setSeriesStroke(2, new BasicStroke(2.0f));
+        renderer.setSeriesPaint(3, new Color(160, 82, 45, 120)); // Senkou B (brown, semi-transparent)
+        renderer.setSeriesStroke(3, new BasicStroke(2.0f));
+        renderer.setSeriesPaint(4, new Color(128, 0, 255)); // Chikou (purple)
+        renderer.setSeriesStroke(4, new BasicStroke(1.5f));
+        renderer.setSeriesShapesVisible(0, false);
+        renderer.setSeriesShapesVisible(1, false);
+        renderer.setSeriesShapesVisible(2, false);
+        renderer.setSeriesShapesVisible(3, false);
+        renderer.setSeriesShapesVisible(4, false);
+        plot.setRenderer(datasetIndex, renderer);
+        // Fill cloud area between Senkou A and B
+        org.jfree.chart.renderer.xy.XYDifferenceRenderer cloudRenderer = new org.jfree.chart.renderer.xy.XYDifferenceRenderer(
+            new Color(0, 200, 0, 60), new Color(160, 82, 45, 60), false);
+        cloudRenderer.setSeriesPaint(0, new Color(0, 200, 0, 60));
+        cloudRenderer.setSeriesPaint(1, new Color(160, 82, 45, 60));
+        plot.setDataset(datasetIndex + 1, new TimeSeriesCollection(senkouA));
+        plot.setDataset(datasetIndex + 2, new TimeSeriesCollection(senkouB));
+        plot.setRenderer(datasetIndex + 1, cloudRenderer);
+    }
+
     private void updateCharts() {
         removeAll();
         add(indicatorPanel, BorderLayout.NORTH);
         chartPanel = createMainChartPanel();
-        rsiChartPanel = showRSI ? createRSIChartPanel() : null;
+        rsiChartPanel = (showRSI || showATR) ? createIndicatorChartPanel() : null;
         JPanel chartsPanel = new JPanel();
         chartsPanel.setLayout(new BoxLayout(chartsPanel, BoxLayout.Y_AXIS));
         chartsPanel.add(chartPanel);

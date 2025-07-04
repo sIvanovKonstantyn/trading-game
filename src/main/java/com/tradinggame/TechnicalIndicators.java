@@ -38,6 +38,21 @@ public class TechnicalIndicators {
         }
     }
     
+    public static class IchimokuCloud {
+        public final double[] tenkan;
+        public final double[] kijun;
+        public final double[] senkouA;
+        public final double[] senkouB;
+        public final double[] chikou;
+        public IchimokuCloud(double[] tenkan, double[] kijun, double[] senkouA, double[] senkouB, double[] chikou) {
+            this.tenkan = tenkan;
+            this.kijun = kijun;
+            this.senkouA = senkouA;
+            this.senkouB = senkouB;
+            this.chikou = chikou;
+        }
+    }
+    
     /**
      * Calculate RSI (Relative Strength Index)
      * @param prices List of prices
@@ -135,5 +150,126 @@ public class TechnicalIndicators {
         double averageVolume = totalVolume / count;
         
         return new VolumeData(baseVolume, averageVolume);
+    }
+    
+    /**
+     * Calculate VWAP (Volume-Weighted Average Price)
+     * @param prices List of PriceData
+     * @return VWAP value, or 0 if no volume
+     */
+    public static double calculateVWAP(List<PriceData> prices) {
+        double pvSum = 0;
+        double vSum = 0;
+        for (PriceData pd : prices) {
+            pvSum += pd.getPrice() * pd.getVolume();
+            vSum += pd.getVolume();
+        }
+        if (vSum == 0) return 0;
+        return pvSum / vSum;
+    }
+    
+    /**
+     * Calculate ATR (Average True Range)
+     * @param prices List of PriceData
+     * @param period ATR period (typically 14)
+     * @return ATR value, or 0 if not enough data
+     */
+    public static double calculateATR(List<PriceData> prices, int period) {
+        if (prices.size() < period + 1) return 0;
+        double sumTR = 0;
+        for (int i = prices.size() - period; i < prices.size(); i++) {
+            PriceData curr = prices.get(i);
+            PriceData prev = prices.get(i - 1);
+            double high = curr.getHigh();
+            double low = curr.getLow();
+            double prevClose = prev.getPrice();
+            double tr = Math.max(high - low, Math.max(Math.abs(high - prevClose), Math.abs(low - prevClose)));
+            sumTR += tr;
+        }
+        return sumTR / period;
+    }
+    
+    /**
+     * Calculate ATR% (ATR as a percentage of close price)
+     * @param prices List of PriceData
+     * @param period ATR period (typically 14)
+     * @return ATR% value, or 0 if not enough data or close is zero
+     */
+    public static double calculateATRPercent(List<PriceData> prices, int period) {
+        if (prices.size() < period + 1) return 0;
+        double atr = calculateATR(prices, period);
+        double close = prices.get(prices.size() - 1).getPrice();
+        if (close == 0) return 0;
+        return (atr / close) * 100.0;
+    }
+    
+    /**
+     * Calculate Ichimoku Cloud components
+     * @param prices List of PriceData
+     * @return IchimokuCloud object with arrays for each line
+     */
+    public static IchimokuCloud calculateIchimokuCloud(List<PriceData> prices) {
+        int n = prices.size();
+        double[] tenkan = new double[n];
+        double[] kijun = new double[n];
+        double[] senkouA = new double[n];
+        double[] senkouB = new double[n];
+        double[] chikou = new double[n];
+        for (int i = 0; i < n; i++) {
+            // Tenkan-sen (Conversion Line): (9-period high + 9-period low) / 2
+            if (i >= 8) {
+                double maxHigh = Double.NEGATIVE_INFINITY;
+                double minLow = Double.POSITIVE_INFINITY;
+                for (int j = i - 8; j <= i; j++) {
+                    maxHigh = Math.max(maxHigh, prices.get(j).getHigh());
+                    minLow = Math.min(minLow, prices.get(j).getLow());
+                }
+                tenkan[i] = (maxHigh + minLow) / 2.0;
+            } else {
+                tenkan[i] = Double.NaN;
+            }
+            // Kijun-sen (Base Line): (26-period high + 26-period low) / 2
+            if (i >= 25) {
+                double maxHigh = Double.NEGATIVE_INFINITY;
+                double minLow = Double.POSITIVE_INFINITY;
+                for (int j = i - 25; j <= i; j++) {
+                    maxHigh = Math.max(maxHigh, prices.get(j).getHigh());
+                    minLow = Math.min(minLow, prices.get(j).getLow());
+                }
+                kijun[i] = (maxHigh + minLow) / 2.0;
+            } else {
+                kijun[i] = Double.NaN;
+            }
+            // Chikou Span (Lagging): close shifted -26
+            if (i + 26 < n) {
+                chikou[i] = prices.get(i + 26).getPrice();
+            } else {
+                chikou[i] = Double.NaN;
+            }
+        }
+        // Senkou Span A: (Tenkan + Kijun) / 2, plotted 26 periods ahead
+        for (int i = 0; i < n; i++) {
+            if (i >= 25 && i + 26 < n && !Double.isNaN(tenkan[i]) && !Double.isNaN(kijun[i])) {
+                senkouA[i + 26] = (tenkan[i] + kijun[i]) / 2.0;
+            }
+        }
+        // Senkou Span B: (52-period high + 52-period low) / 2, plotted 26 periods ahead
+        for (int i = 51; i < n; i++) {
+            double maxHigh = Double.NEGATIVE_INFINITY;
+            double minLow = Double.POSITIVE_INFINITY;
+            for (int j = i - 51; j <= i; j++) {
+                maxHigh = Math.max(maxHigh, prices.get(j).getHigh());
+                minLow = Math.min(minLow, prices.get(j).getLow());
+            }
+            if (i + 26 < n) {
+                senkouB[i + 26] = (maxHigh + minLow) / 2.0;
+            }
+        }
+        // Fill NaN for uninitialized SenkouA/B
+        for (int i = 0; i < n; i++) {
+            if (Double.isNaN(senkouA[i])) senkouA[i] = Double.NaN;
+            if (Double.isNaN(senkouB[i])) senkouB[i] = Double.NaN;
+        }
+        return new IchimokuCloud(tenkan, kijun, senkouA, senkouB, chikou);
     }
 } 
